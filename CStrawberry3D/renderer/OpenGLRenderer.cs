@@ -25,7 +25,22 @@ namespace CStrawberry3D.renderer
         private Scene _scene = new Scene();
         private Stopwatch _clock = new Stopwatch();
 
-        private float _total = 0;
+        private float _totalTime = 0;
+        public float totalTime
+        {
+            get
+            {
+                return _totalTime;
+            }
+        }
+        private float _deltaTime = 0;
+        public float deltaTime
+        {
+            get
+            {
+                return _deltaTime;
+            }
+        }
         public Scene scene
         {
             get
@@ -66,14 +81,10 @@ namespace CStrawberry3D.renderer
         }
         private void updateFrame(object sender, FrameEventArgs e)
         {
-            float delta = _clock.ElapsedMilliseconds * 0.001f;
-            scene.root.getAll()[0].rotateX((float)Math.PI * delta);
-            if (_total >= 1)
-            {
-                Console.WriteLine(_total);
-                Console.WriteLine(scene.root.getAll()[0].rx);
-                Console.Read();
-            }
+             _deltaTime = _clock.ElapsedMilliseconds * 0.001f;
+             _totalTime += _deltaTime;
+            _clock.Restart();
+            scene.root.getAll()[0].rotateX((float)Math.PI * deltaTime);
         }
         private void renderFrame(object sender, FrameEventArgs e)
         {

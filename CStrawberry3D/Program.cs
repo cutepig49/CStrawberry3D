@@ -27,6 +27,8 @@ namespace CStrawberry3D
             var renderer = OpenGLRenderer.getSingleton();
             renderer.init("Test", 800, 600);
 
+            Loader.getSingleton().loadAsset("cube.nff");
+
             var cubeNode = renderer.scene.root.createChild();
             cubeNode.translateZ(-10);
 

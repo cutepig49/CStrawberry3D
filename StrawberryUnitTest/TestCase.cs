@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CStrawberry3D.core;
 using CStrawberry3D.component;
+using CStrawberry3D.renderer;
 using OpenTK;
 
 namespace StrawberryUnitTest
@@ -9,6 +10,12 @@ namespace StrawberryUnitTest
     [TestClass]
     public class TestCase
     {
+        [TestInitialize]
+        public void TestInit()
+        {
+            var renderer = OpenGLRenderer.getSingleton();
+            renderer.init("UnitTest", 800, 600);
+        }
         [TestMethod]
         public void TestStrawberryNodeGuidAndId()
         {

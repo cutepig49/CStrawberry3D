@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Assimp;
 
 namespace CStrawberry3D.loader
 {
     public class Loader
     {
+        public static List<string> MSH = new List<string>{ ".x", ".nff"};
         private static Loader _singleton;
         public static Loader getSingleton()
         {
@@ -17,6 +19,7 @@ namespace CStrawberry3D.loader
             return _singleton;
         }
 
+        private AssimpImporter _importer = new AssimpImporter();
         private Dictionary<string, Resource> _assets = new Dictionary<string, Resource>();
         public Loader()
         {
@@ -40,17 +43,61 @@ namespace CStrawberry3D.loader
         {
             return (Mesh)_assets[assetName];
         }
-        bool createManualMesh(string assetName, float[] positionArray, ushort[] indexArray, float[] texCoordArray = null, float[] normalArray = null, float[] colorArray = null)
+
+        public bool loadAsset(string filePath)
+        {
+            if (_assets.ContainsKey(filePath))
+                return false;
+ 
+            string fileType = filePath.Substring(filePath.LastIndexOf(".")).ToLower();
+            if (MSH.Contains(fileType) && _importer.IsImportFormatSupported(fileType))
+            {
+                var scene = _importer.ImportFile(filePath, PostProcessSteps.Triangulate | PostProcessSteps.GenerateSmoothNormals | PostProcessSteps.FlipUVs);
+                if (scene == null)
+                    return false;
+
+                var mesh = new Mesh();
+                for (int i = 0; i < scene.MeshCount; i++)
+                {
+                    //Assimp.Mesh tmp = scene.Meshes[i];
+                    //float[] positionArray = _vector2float(tmp.Vertices);
+                    //float[] normalArray = _vector2float(tmp.Normals);
+                    //float[] texCoordArray = _vector2float(tmp.GetTextureCoords(0));
+                    //ushort[] indexArray = ()tmp.GetShortIndices();
+                }
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+        }
+        public bool createManualMesh(string assetName, float[] positionArray, ushort[] indexArray, int materialIndex, float[] texCoordArray = null, float[] normalArray = null, float[] colorArray = null)
         {
             if (hasAsset(assetName))
                 return false;
-            Mesh asset = new Mesh(positionArray, indexArray, texCoordArray, normalArray, colorArray);
+            Mesh asset = new Mesh();
+            asset.addEntry(positionArray, indexArray, materialIndex, texCoordArray, normalArray, colorArray);
             if (asset == null)
             {
                 return false;
             }
             _assets[assetName] = asset;
             return true;
+        }
+        private float[] _vector2float(Assimp.Vector3D[] vertices)
+        {
+            if (vertices == null)
+                return null;
+
+            List<float> newVertices = new List<float>();
+            foreach (Assimp.Vector3D vertex in vertices)
+            {
+                newVertices.Add(vertex.X);
+                newVertices.Add(vertex.Y);
+                newVertices.Add(vertex.Z);
+            }
+            return newVertices.ToArray();
         }
         private void _createDefaultCube()
         {
@@ -124,7 +171,7 @@ namespace CStrawberry3D.loader
                 colorArray.Add(1.0f);
                 colorArray.Add(1.0f);
             }
-            createManualMesh(assetName, positionArray, indexArray, texCoordArray, normalArray, colorArray.ToArray());
+            createManualMesh(assetName, positionArray, indexArray, -1, texCoordArray, normalArray, colorArray.ToArray());
         }
     }
 }
