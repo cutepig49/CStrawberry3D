@@ -12,14 +12,14 @@ namespace CStrawberry3D
         /// <summary>
         /// 应用程序的主入口点。
         /// </summary>
-        [DllImport("Kernel32.dll")]
-        static extern bool AllocConsole();
+        //[DllImport("Kernel32.dll")]
+        //static extern bool AllocConsole();
 
 
         [STAThread]
         static void Main()
         {
-            AllocConsole();
+            //AllocConsole();
 
             var renderer = OpenGLRenderer.getSingleton();
             renderer.init("Test", 800, 600);
@@ -28,7 +28,6 @@ namespace CStrawberry3D
             cubeNode.translateZ(-10);
 
             var cubeMesh = Loader.getSingleton().getMesh("Cube");
-            var colorMaterial = new GlobalColorMaterial(new Vector4(1,1,1,1));
             var component = new MeshComponent(cubeMesh);
 
             cubeNode.addComponent(component);

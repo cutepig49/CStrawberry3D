@@ -167,8 +167,8 @@ namespace CStrawberry3D.component
 
             if (_hasGlobalColor)
                 GL.Uniform4(_uniformIdentifers[Shader.U_GLOBALCOLOR_IDENTIFER], _globalColor);
-            //if (_hasPosition)
-            //    GL.EnableVertexAttribArray(_attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER]);
+            if (_hasPosition)
+                GL.EnableVertexAttribArray(_attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER]);
             if (_hasVertexColor)
                 GL.EnableVertexAttribArray(_attribIdentifers[Shader.A_VERTEXCOLOR_IDENTIFER]);
             if (_hasTexture)

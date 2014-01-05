@@ -112,7 +112,7 @@ namespace CStrawberry3D.renderer
                     }
                 }
             }
-
+            
             foreach (StrawberryNode node in scene.root.getAll())
             {
                 node.updateWorldMatrix();

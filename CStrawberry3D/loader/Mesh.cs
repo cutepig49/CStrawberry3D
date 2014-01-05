@@ -107,11 +107,11 @@ namespace CStrawberry3D.loader
                     Console.WriteLine(error);
                 }
 
-                //if (material.hasPosition)
-                //{
-                //    GL.BindBuffer(BufferTarget.ArrayBuffer, entry._positionBuffer.bufferObject);
-                //    GL.VertexAttribPointer(material.attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER], entry._positionBuffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
-                //}
+                if (material.hasPosition)
+                {
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, entry._positionBuffer.bufferObject);
+                    GL.VertexAttribPointer(material.attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER], entry._positionBuffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
+                }
                 if (material.hasTexture)
                 {
                     GL.BindBuffer(BufferTarget.ArrayBuffer, entry._texCoordBuffer.bufferObject);
