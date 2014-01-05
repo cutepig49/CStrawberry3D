@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CStrawberry3D.component;
 using OpenTK;
-using CStrawberry3D.component;
+using System.Collections.Generic;
 
 namespace CStrawberry3D.core
 {

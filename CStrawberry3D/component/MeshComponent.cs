@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenTK.Graphics.OpenGL;
+﻿using CStrawberry3D.loader;
 using CStrawberry3D.shader;
-using CStrawberry3D.loader;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
+using System;
+using System.Collections.Generic;
 
 namespace CStrawberry3D.component
 {
@@ -109,8 +108,11 @@ namespace CStrawberry3D.component
 
         public static Material createCustomMaterial(Assimp.ShadingMode shadingMode, bool hasColorAmbient, bool hasColorDiffuse, bool hasColorSpecular, Vector4 colorAmbient = new Vector4(), Vector4 colorDiffuse=new Vector4(), Vector4 colorSpecular=new Vector4())
         {
-            Shader shader;
+            Material material = new GlobalColorMaterial(new Vector4(1, 0, 1, 1));
+            Console.WriteLine(material.GetType());
+            return material;
 
+            Shader shader;
 
             int checkAmbient = 0x00000001;
             int checkDiffuse = 0x00000010;
@@ -165,8 +167,8 @@ namespace CStrawberry3D.component
 
             if (_hasGlobalColor)
                 GL.Uniform4(_uniformIdentifers[Shader.U_GLOBALCOLOR_IDENTIFER], _globalColor);
-            if (_hasPosition)
-                GL.EnableVertexAttribArray(_attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER]);
+            //if (_hasPosition)
+            //    GL.EnableVertexAttribArray(_attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER]);
             if (_hasVertexColor)
                 GL.EnableVertexAttribArray(_attribIdentifers[Shader.A_VERTEXCOLOR_IDENTIFER]);
             if (_hasTexture)

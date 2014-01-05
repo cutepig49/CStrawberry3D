@@ -1,8 +1,6 @@
-﻿using System;
+﻿using Assimp;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Assimp;
 
 namespace CStrawberry3D.loader
 {
@@ -68,7 +66,7 @@ namespace CStrawberry3D.loader
                     //currMaterial.HasColorSpecular;
                     //currMaterial.HasColorTransparent;
                     
-                    //component.Material.createCustomMaterial(currMaterial.HasColorAmbient, currMaterial.HasColorDiffuse, currMaterial.HasColorSpecular);
+                    mesh.addMaterial(component.Material.createCustomMaterial(ShadingMode.Gouraud, true, true, true));
                     
                 }
                 for (int i = 0; i < scene.MeshCount; i++)

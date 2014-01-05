@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CStrawberry3D.shader;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
+using System;
 
 namespace CStrawberry3D.shader
 {
@@ -25,11 +20,6 @@ namespace CStrawberry3D.shader
             BasicColorFragmentShader = new Shader(DefaultShaders.BasicColorFragmentShader, ShaderType.FragmentShader);
             TexturedVertexShader = new Shader(DefaultShaders.TexturedVertexShader, ShaderType.VertexShader);
             TexturedFragmentShader = new Shader(DefaultShaders.TexturedFragmentShader, ShaderType.FragmentShader);
-        }
-
-        public static void chooseDefaultShader()
-        {
-
         }
 
     }

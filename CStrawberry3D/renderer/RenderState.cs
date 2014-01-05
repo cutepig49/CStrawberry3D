@@ -1,8 +1,5 @@
-﻿using System;
+﻿using CStrawberry3D.core;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CStrawberry3D.core;
 
 namespace CStrawberry3D.renderer
 {

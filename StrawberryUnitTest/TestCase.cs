@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CStrawberry3D.core;
 using CStrawberry3D.component;
 using CStrawberry3D.renderer;
+using CStrawberry3D.shader;
 using OpenTK;
 
 namespace StrawberryUnitTest
@@ -23,10 +24,8 @@ namespace StrawberryUnitTest
             var node1 = _renderer.scene.root;
             var node2 = node1.createChild();
 
-            Assert.AreEqual(0, node1.id);
-            Assert.AreEqual(1, node2.id);
-            Assert.AreEqual(false, node1.id == node2.id);
-            Assert.AreEqual(false, node1.guid == node2.guid);
+            Assert.AreEqual(true, node1.id != node2.id);
+            Assert.AreEqual(true, node1.guid != node2.guid);
         }
         [TestMethod]
         public void TestComponentGuid()
@@ -85,6 +84,16 @@ namespace StrawberryUnitTest
             Assert.AreEqual(CStrawberry3D.core.Mathf.PI, CStrawberry3D.core.Mathf.degreeToRadian(180));
             Assert.AreEqual(180, CStrawberry3D.core.Mathf.radianToDegree(CStrawberry3D.core.Mathf.PI));
 
+        }
+        [TestMethod]
+        public void TestShadersLoading()
+        {
+            Assert.AreNotEqual(null, ShaderManager.GlobalColorFragmentShader);
+            Assert.AreNotEqual(null, ShaderManager.GlobalColorVertexShader);
+            Assert.AreNotEqual(null, ShaderManager.BasicColorFragmentShader);
+            Assert.AreNotEqual(null, ShaderManager.BasicColorVertexShader);
+            Assert.AreNotEqual(null, ShaderManager.TexturedFragmentShader);
+            Assert.AreNotEqual(null, ShaderManager.TexturedVertexShader);
         }
     }
 }

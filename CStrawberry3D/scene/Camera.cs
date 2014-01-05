@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using CStrawberry3D.core;
+﻿using CStrawberry3D.core;
 using OpenTK;
 
 namespace CStrawberry3D.scene

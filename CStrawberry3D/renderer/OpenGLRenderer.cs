@@ -1,12 +1,11 @@
-﻿using OpenTK;
+﻿using CStrawberry3D.component;
+using CStrawberry3D.core;
+using CStrawberry3D.scene;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using CStrawberry3D.scene;
-using CStrawberry3D.core;
-using CStrawberry3D.component;
 
 namespace CStrawberry3D.renderer
 {
@@ -101,6 +100,7 @@ namespace CStrawberry3D.renderer
             GL.Clear(ClearBufferMask.ColorBufferBit|ClearBufferMask.DepthBufferBit);
 
             Matrix4 pMatrix = Matrix4.CreatePerspectiveFieldOfView(core.Mathf.PI / 4, (float)_window.Width / _window.Height, 0.1f, 10000);
+            pMatrix *= Matrix4.LookAt(new Vector3(0, 0, 10), new Vector3(0, 0, 0), Vector3.UnitY);
 
             foreach (StrawberryNode node in scene.root.getAll())
             {

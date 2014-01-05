@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using CStrawberry3D.component;
+using CStrawberry3D.shader;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using CStrawberry3D.component;
-using CStrawberry3D.shader;
+using System;
+using System.Collections.Generic;
 
 namespace CStrawberry3D.loader
 {
@@ -94,13 +92,26 @@ namespace CStrawberry3D.loader
                 material.ready();
 
                 GL.UniformMatrix4(material.uniformIdentifers[Shader.U_PMATRIX_IDENTIFER], false, ref pMatrix);
+
+                ErrorCode error = GL.GetError();
+                if (error != ErrorCode.NoError)
+                {
+                    Console.WriteLine(error);
+                }
+
                 GL.UniformMatrix4(material.uniformIdentifers[Shader.U_MVMATRIX_IDENTIFER], false, ref mvMatrix);
 
-                if (material.hasPosition)
+                 error = GL.GetError();
+                if (error != ErrorCode.NoError)
                 {
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, entry._positionBuffer.bufferObject);
-                    GL.VertexAttribPointer(material.attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER], entry._positionBuffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
+                    Console.WriteLine(error);
                 }
+
+                //if (material.hasPosition)
+                //{
+                //    GL.BindBuffer(BufferTarget.ArrayBuffer, entry._positionBuffer.bufferObject);
+                //    GL.VertexAttribPointer(material.attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER], entry._positionBuffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
+                //}
                 if (material.hasTexture)
                 {
                     GL.BindBuffer(BufferTarget.ArrayBuffer, entry._texCoordBuffer.bufferObject);

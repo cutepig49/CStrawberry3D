@@ -1,13 +1,9 @@
-﻿using System;
-using System.Drawing;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using CStrawberry3D.component;
-using CStrawberry3D.renderer;
-using CStrawberry3D.scene;
+﻿using CStrawberry3D.component;
 using CStrawberry3D.loader;
-using CStrawberry3D.shader;
+using CStrawberry3D.renderer;
 using OpenTK;
+using System;
+using System.Runtime.InteropServices;
 
 namespace CStrawberry3D
 {
@@ -28,9 +24,6 @@ namespace CStrawberry3D
             var renderer = OpenGLRenderer.getSingleton();
             renderer.init("Test", 800, 600);
 
-
-            Loader.getSingleton().loadAsset("tiny.x");
-
             var cubeNode = renderer.scene.root.createChild();
             cubeNode.translateZ(-10);
 
@@ -40,10 +33,7 @@ namespace CStrawberry3D
 
             cubeNode.addComponent(component);
 
-            var light = renderer.scene.createDirectionalLight();
-            renderer.scene.root.addChild(light);
 
-            core.Mathf.radianToDegree(core.Mathf.PI);
             renderer.run();
         }
     }
