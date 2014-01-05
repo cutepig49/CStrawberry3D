@@ -29,7 +29,7 @@ namespace CStrawberry3D.loader
             }
             _singleton = this;
 
-            _createDefaultCube();
+            _createDefaultShapes();
         }
         public bool hasAsset(string assetName)
         {
@@ -57,14 +57,32 @@ namespace CStrawberry3D.loader
                     return false;
 
                 var mesh = new Mesh();
+
+                for (int i = 0; i < scene.MaterialCount; i++)
+                {
+
+                    Assimp.Material currMaterial = scene.Materials[i];
+
+                    //currMaterial.HasColorDiffuse;
+                    //currMaterial.HasColorAmbient;
+                    //currMaterial.HasColorSpecular;
+                    //currMaterial.HasColorTransparent;
+                    
+                    //component.Material.createCustomMaterial(currMaterial.HasColorAmbient, currMaterial.HasColorDiffuse, currMaterial.HasColorSpecular);
+                    
+                }
                 for (int i = 0; i < scene.MeshCount; i++)
                 {
-                    //Assimp.Mesh tmp = scene.Meshes[i];
-                    //float[] positionArray = _vector2float(tmp.Vertices);
-                    //float[] normalArray = _vector2float(tmp.Normals);
-                    //float[] texCoordArray = _vector2float(tmp.GetTextureCoords(0));
-                    //ushort[] indexArray = ()tmp.GetShortIndices();
+                    Assimp.Mesh tmp = scene.Meshes[i];
+                    float[] positionArray = _vector2float(tmp.Vertices);
+                    float[] normalArray = _vector2float(tmp.Normals);
+                    float[] texCoordArray = _vector2float(tmp.GetTextureCoords(0));
+                    short[] indexArray = tmp.GetShortIndices();
+                    float[] colorArray = _color2float(tmp.GetVertexColors(0));
+                    mesh.addEntry(positionArray, indexArray, tmp.MaterialIndex, texCoordArray, normalArray, colorArray);
+
                 }
+                _assets[filePath] = mesh;
             }
             else
             {
@@ -72,7 +90,7 @@ namespace CStrawberry3D.loader
             }
             return true;
         }
-        public bool createManualMesh(string assetName, float[] positionArray, ushort[] indexArray, int materialIndex, float[] texCoordArray = null, float[] normalArray = null, float[] colorArray = null)
+        public bool createManualMesh(string assetName, float[] positionArray, short[] indexArray, int materialIndex, float[] texCoordArray = null, float[] normalArray = null, float[] colorArray = null)
         {
             if (hasAsset(assetName))
                 return false;
@@ -83,6 +101,14 @@ namespace CStrawberry3D.loader
                 return false;
             }
             _assets[assetName] = asset;
+            return true;
+        }
+        private bool _renameAsset(string assetName, string newName)
+        {
+            if (_assets.ContainsKey(newName) || !_assets.ContainsKey(assetName))
+                return false;
+            _assets[newName] = _assets[assetName];
+            _assets.Remove(assetName);
             return true;
         }
         private float[] _vector2float(Assimp.Vector3D[] vertices)
@@ -99,79 +125,27 @@ namespace CStrawberry3D.loader
             }
             return newVertices.ToArray();
         }
-        private void _createDefaultCube()
+        private float[] _color2float(Assimp.Color4D[] vertices)
         {
-            string assetName = "Cube";
-            float[] positionArray = {
-                                        // Front face
-                                        -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
-                                        // Back face
-                                        -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
-                                        // Top face
-                                        -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
-                                        // Bottom face
-                                         -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f,
-                                        // Right face
-                                        1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f,
-                                        // Left face
-                                        -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f
-                                    };
-            ushort[] indexArray = {
-                                      // Front face
-                                      0, 1, 2, 0, 2, 3,
-                                      // Back face
-                                      4, 5, 6, 4, 6, 7,
-                                      // Top face
-                                      8, 9, 10, 8, 10, 11,
-                                      // Bottom face
-                                      12, 13, 14, 12, 14, 15,
-                                      // Right face
-                                      16, 17, 18, 16, 18, 19,
-                                      // Left face
-                                      20, 21, 22, 20, 22, 23
-                                  };
-            float[] texCoordArray = {
-                                        // Front face
-                                        0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-
-                                        // Back face
-                                        1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-
-                                        // Top face
-                                        0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-
-                                        // Bottom face
-                                        1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-
-                                        // Right face
-                                        1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-
-                                        // Left face
-                                        0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f
-                                    };
-            float[] normalArray = {
-                                      // Front face
-                                      0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-                                      // Back face
-                                      0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
-                                      // Top face
-                                      0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                                      // Bottom face
-                                      0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
-                                      // Right face
-                                      1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                                      // Left face
-                                      -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f
-                                   };
-            List<float> colorArray = new List<float>();
-            for (int i = 0; i < 24; i++)
+            if (vertices == null)
+                return null;
+            List<float> newVertices = new List<float>();
+            foreach (Assimp.Color4D vertex in vertices)
             {
-                colorArray.Add(1.0f);
-                colorArray.Add(1.0f);
-                colorArray.Add(1.0f);
-                colorArray.Add(1.0f);
+                newVertices.Add(vertex.R);
+                newVertices.Add(vertex.G);
+                newVertices.Add(vertex.B);
+                newVertices.Add(vertex.A);
             }
-            createManualMesh(assetName, positionArray, indexArray, -1, texCoordArray, normalArray, colorArray.ToArray());
+            return newVertices.ToArray();
+        }
+        private void _createDefaultShapes()
+        {
+            loadAsset("cube.nff");
+            _renameAsset("cube.nff", "Cube");
+
+            loadAsset("sphere.nff");
+            _renameAsset("sphere.nff", "Sphere");
         }
     }
 }

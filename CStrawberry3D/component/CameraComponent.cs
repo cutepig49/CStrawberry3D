@@ -5,8 +5,11 @@ using System.Text;
 
 namespace CStrawberry3D.component
 {
-    class CameraComponent:Component
+    public class CameraComponent:Component
     {
-
+        public CameraComponent():base()
+        {
+            _componentName = "CameraComponent";
+        }
     }
 }

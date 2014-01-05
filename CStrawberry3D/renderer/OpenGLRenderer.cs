@@ -2,6 +2,7 @@
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using CStrawberry3D.scene;
 using CStrawberry3D.core;
@@ -24,6 +25,14 @@ namespace CStrawberry3D.renderer
         private GameWindow _window = null;
         private Scene _scene = new Scene();
         private Stopwatch _clock = new Stopwatch();
+        private RenderState _renderState = new RenderState();
+        public RenderState renderState
+        {
+            get
+            {
+                return renderState;
+            }
+        }
 
         private float _totalTime = 0;
         public float totalTime
@@ -72,6 +81,7 @@ namespace CStrawberry3D.renderer
         private void load(object sender, EventArgs e)
         {
             _window.VSync = VSyncMode.On;
+            GL.Enable(EnableCap.DepthTest);
             GL.ClearColor(Color4.Black);
 
         }
@@ -84,13 +94,24 @@ namespace CStrawberry3D.renderer
              _deltaTime = _clock.ElapsedMilliseconds * 0.001f;
              _totalTime += _deltaTime;
             _clock.Restart();
-            scene.root.getAll()[0].rotateX((float)Math.PI * deltaTime);
+
         }
         private void renderFrame(object sender, FrameEventArgs e)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit|ClearBufferMask.DepthBufferBit);
 
-            Matrix4 pMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, (float)_window.Width / _window.Height, 0.1f, 100f);
+            Matrix4 pMatrix = Matrix4.CreatePerspectiveFieldOfView(core.Mathf.PI / 4, (float)_window.Width / _window.Height, 0.1f, 10000);
+
+            foreach (StrawberryNode node in scene.root.getAll())
+            {
+                foreach (Component component in node.components)
+                {
+                    if (component.getName() == "DirectionalLightComponent")
+                    {
+                        _renderState.directionalLights.Add(node);
+                    }
+                }
+            }
 
             foreach (StrawberryNode node in scene.root.getAll())
             {
@@ -108,6 +129,14 @@ namespace CStrawberry3D.renderer
             }
 
             _window.SwapBuffers();
+            _renderState.restore();
+
+            ErrorCode error = GL.GetError();
+            if (error != ErrorCode.NoError)
+            {
+                Console.WriteLine(error);
+            }
+      
         }
 
     }

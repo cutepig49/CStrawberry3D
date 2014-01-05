@@ -10,16 +10,17 @@ namespace StrawberryUnitTest
     [TestClass]
     public class TestCase
     {
+        private OpenGLRenderer _renderer;
         [TestInitialize]
         public void TestInit()
         {
-            var renderer = OpenGLRenderer.getSingleton();
-            renderer.init("UnitTest", 800, 600);
+            _renderer = OpenGLRenderer.getSingleton();
+            _renderer.init("UnitTest", 800, 600);
         }
         [TestMethod]
         public void TestStrawberryNodeGuidAndId()
         {
-            StrawberryNode node1 = new StrawberryNode();
+            var node1 = _renderer.scene.root;
             var node2 = node1.createChild();
 
             Assert.AreEqual(0, node1.id);
@@ -37,16 +38,21 @@ namespace StrawberryUnitTest
         }
 
         [TestMethod]
-        public void TestTranslationAndRotationWithMatrix()
+        public void TestTranslationWithMatrix()
         {
             StrawberryNode parent = new StrawberryNode();
             var child = parent.createChild();
             var child2 = child.createChild();
 
             parent.translate(new Vector3(5, 5, 10));
+
             child.translate(new Vector3(0, 0, 10));
+
             child2.translate(new Vector3(10, 0, 0));
             child2.updateWorldMatrix();
+
+            Assert.AreEqual(new Vector3(5, 5, 20), child.matrixWorld.ExtractTranslation());
+            Assert.AreEqual(new Vector3(15, 5, 20), child2.matrixWorld.ExtractTranslation());
         }
 
         [TestMethod]
@@ -60,18 +66,25 @@ namespace StrawberryUnitTest
             node.ry = 10;
             node.rz = 10;
 
-            Assert.AreEqual(true, node.translation.X == 10);
+            Assert.AreEqual(10, node.translation.X);
             Assert.AreEqual(true, node.translation.X == node.x);
-            Assert.AreEqual(true, node.translation.Y == 10);
+            Assert.AreEqual(10, node.translation.Y);
             Assert.AreEqual(true, node.translation.Y == node.y);
-            Assert.AreEqual(true, node.translation.Z == 10);
+            Assert.AreEqual(10, node.translation.Z);
             Assert.AreEqual(true, node.translation.Z == node.z);
-            Assert.AreEqual(true, node.rotation.X == 10);
+            Assert.AreEqual(10, node.rotation.X);
             Assert.AreEqual(true, node.rotation.X == node.rx);
-            Assert.AreEqual(true, node.rotation.Y == 10);
+            Assert.AreEqual(10, node.rotation.Y);
             Assert.AreEqual(true, node.rotation.Y == node.ry);
-            Assert.AreEqual(true, node.rotation.Z == 10);
+            Assert.AreEqual(10, node.rotation.Z);
             Assert.AreEqual(true, node.rotation.Z == node.rz);
+        }
+        [TestMethod]
+        public void TestDegreeAndRadianConverter()
+        {
+            Assert.AreEqual(CStrawberry3D.core.Mathf.PI, CStrawberry3D.core.Mathf.degreeToRadian(180));
+            Assert.AreEqual(180, CStrawberry3D.core.Mathf.radianToDegree(CStrawberry3D.core.Mathf.PI));
+
         }
     }
 }

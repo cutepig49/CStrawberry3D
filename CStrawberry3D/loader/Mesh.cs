@@ -5,6 +5,7 @@ using System.Text;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using CStrawberry3D.component;
+using CStrawberry3D.shader;
 
 namespace CStrawberry3D.loader
 {
@@ -31,16 +32,20 @@ namespace CStrawberry3D.loader
     }
     public class Mesh:Resource
     {
+        private List<Material> _materials = new List<Material>();
         private List<Entry> _entries = new List<Entry>();
 
-        public void addEntry(float[] positionArray, ushort[] indexArray, int materialIndex, float[] texCoordArray = null, float[] normalArray = null, float[] colorArray = null)
+        private bool _hasColor;
+
+
+        public void addEntry(float[] positionArray, short[] indexArray, int materialIndex, float[] texCoordArray = null, float[] normalArray = null, float[] colorArray = null)
         {
             Entry entry = new Entry();
             entry._materialIndex = materialIndex;
 
             int buffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(positionArray.Length * 8 * sizeof(float)), positionArray, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(positionArray.Length * sizeof(float)), positionArray, BufferUsageHint.StaticDraw);
             entry._positionBuffer = new Buffer(buffer, 3, positionArray.Length / 3);
 
             buffer = GL.GenBuffer();
@@ -52,31 +57,45 @@ namespace CStrawberry3D.loader
             {
                 buffer = GL.GenBuffer();
                 GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(texCoordArray.Length * 8 * sizeof(float)), texCoordArray, BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(texCoordArray.Length * sizeof(float)), texCoordArray, BufferUsageHint.StaticDraw);
                 entry._texCoordBuffer = new Buffer(buffer, 2, texCoordArray.Length / 2);
             }
             if (colorArray != null)
             {
                 buffer = GL.GenBuffer();
                 GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(colorArray.Length * 8 * sizeof(float)), colorArray, BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(colorArray.Length * sizeof(float)), colorArray, BufferUsageHint.StaticDraw);
                 entry._colorBuffer = new Buffer(buffer, 4, colorArray.Length / 4);
             }
             if (normalArray != null)
             {
                 buffer = GL.GenBuffer();
                 GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(normalArray.Length * 8 * sizeof(float)), normalArray, BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(normalArray.Length * sizeof(float)), normalArray, BufferUsageHint.StaticDraw);
                 entry._normalBuffer = new Buffer(buffer, 3, normalArray.Length / 3);
             }
-        }
-        public void ready(Material material, Matrix4 pMatrix, Matrix4 mvMatrix)
-        {
-            GL.UniformMatrix4(material.uniformIdentifers[Shader.U_PMATRIX_IDENTIFER], false, ref pMatrix);
-            GL.UniformMatrix4(material.uniformIdentifers[Shader.U_MVMATRIX_IDENTIFER], false, ref mvMatrix);
 
+            _entries.Add(entry);
+        }
+
+        public void addMaterial(Material material)
+        {
+            _materials.Add(material);
+        }
+
+        public void draw(bool isTransparentPass, Matrix4 pMatrix, Matrix4 mvMatrix)
+        {
             foreach (Entry entry in _entries)
             {
+                Material material = _materials[entry._materialIndex];
+                if (material.isTransparent != isTransparentPass)
+                    continue;
+
+                material.ready();
+
+                GL.UniformMatrix4(material.uniformIdentifers[Shader.U_PMATRIX_IDENTIFER], false, ref pMatrix);
+                GL.UniformMatrix4(material.uniformIdentifers[Shader.U_MVMATRIX_IDENTIFER], false, ref mvMatrix);
+
                 if (material.hasPosition)
                 {
                     GL.BindBuffer(BufferTarget.ArrayBuffer, entry._positionBuffer.bufferObject);
@@ -92,12 +111,7 @@ namespace CStrawberry3D.loader
                     GL.BindBuffer(BufferTarget.ArrayBuffer, entry._colorBuffer.bufferObject);
                     GL.VertexAttribPointer(material.attribIdentifers[Shader.A_VERTEXCOLOR_IDENTIFER], entry._colorBuffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
                 }
-            }
-        }
-        public void draw()
-        {
-            foreach (Entry entry in _entries)
-            {
+
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, entry._indexBuffer.bufferObject);
                 GL.DrawElements(BeginMode.Triangles, entry._indexBuffer.numItems, DrawElementsType.UnsignedShort, 0);
             }
