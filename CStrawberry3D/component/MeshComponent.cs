@@ -9,33 +9,17 @@ namespace CStrawberry3D.component
 {
     public class Material
     {
-        private Dictionary<string, int> _uniformIdentifers = new Dictionary<string, int>(){
-            {Shader.U_MVMATRIX_IDENTIFER, -1},
-            {Shader.U_PMATRIX_IDENTIFER, -1},
-            {Shader.U_SAMPLER_IDENTIFER, -1},
-            {Shader.U_GLOBALCOLOR_IDENTIFER, -1},
-            {Shader.U_NMATRIX_IDENTIFER, -1},
-            {Shader.U_ACOLOR_IDENTIFER, -1},
-            {Shader.U_DCOLOR_IDENTIFER, -1},
-            {Shader.U_LIGHTDIR_IDENTIFER, -1}
-        };
-        private Dictionary<string, int> _attribIdentifers = new Dictionary<string, int>(){
-            {Shader.A_TEXTURECOORD_IDENTIFER, -1},
-            {Shader.A_VERTEXCOLOR_IDENTIFER, -1},
-            {Shader.A_VERTEXPOSITION_IDENTIFER, -1}
-        };
-        public Dictionary<string, int> uniformIdentifers
+        private Effect _effect;
+        public Effect effect
         {
             get
             {
-                return _uniformIdentifers;
+                return _effect;
             }
-        }
-        public Dictionary<string, int> attribIdentifers
-        {
-            get
+            set
             {
-                return _attribIdentifers;
+                if (value!=null)
+                    _effect = value;
             }
         }
         protected bool _hasPosition = true;
@@ -102,17 +86,10 @@ namespace CStrawberry3D.component
         protected bool _castShadow = false;
         protected bool _receiveShadow = false;
 
-        Shader _vertexShader;
-        Shader _fragmentShader;
-        int _shaderProgram;
-
         public static Material createCustomMaterial(Assimp.ShadingMode shadingMode, bool hasColorAmbient, bool hasColorDiffuse, bool hasColorSpecular, Vector4 colorAmbient = new Vector4(), Vector4 colorDiffuse=new Vector4(), Vector4 colorSpecular=new Vector4())
         {
             Material material = new GlobalColorMaterial(new Vector4(1, 0, 1, 1));
-            Console.WriteLine(material.GetType());
             return material;
-
-            Shader shader;
 
             int checkAmbient = 0x00000001;
             int checkDiffuse = 0x00000010;
@@ -136,64 +113,24 @@ namespace CStrawberry3D.component
             if (hasColorSpecular)
                 checkFlag |= checkSpecular;
 
-            Console.WriteLine(checkFlag == checkPhongShader);
-            Console.WriteLine(checkFlag == checkFlatShader);
 
-            return new Material("", "");
+            return new Material(null);
         }
 
-        public Material(string vertexShaderScript, string fragmentShaderScript)
+        public Material(Effect effect)
         {
-            _vertexShader = new Shader(vertexShaderScript, ShaderType.VertexShader);
-            _fragmentShader = new Shader(fragmentShaderScript, ShaderType.FragmentShader);
-            _shaderProgram = GL.CreateProgram();
-            GL.AttachShader(_shaderProgram, _vertexShader.shaderObject);
-            GL.AttachShader(_shaderProgram, _fragmentShader.shaderObject);
-            GL.LinkProgram(_shaderProgram);
-
-            int result;
-            GL.GetProgram(_shaderProgram, GetProgramParameterName.LinkStatus, out result);
-            if (result != 1)
-            {
-                Console.WriteLine("Could not initialise shaders");
-            }
-            _cacheAttribLocation();
-            _cacheUniformLocation();
-
+            _effect = effect;
         }
-        public void ready()
+        public void changeEffect(Effect effect)
         {
-            GL.UseProgram(_shaderProgram);
-
-            if (_hasGlobalColor)
-                GL.Uniform4(_uniformIdentifers[Shader.U_GLOBALCOLOR_IDENTIFER], _globalColor);
-            if (_hasPosition)
-                GL.EnableVertexAttribArray(_attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER]);
-            if (_hasVertexColor)
-                GL.EnableVertexAttribArray(_attribIdentifers[Shader.A_VERTEXCOLOR_IDENTIFER]);
-            if (_hasTexture)
-                GL.EnableVertexAttribArray(_attribIdentifers[Shader.A_TEXTURECOORD_IDENTIFER]);
-        }
-        private void _cacheAttribLocation()
-        {
-            foreach (string key in new List<string>(_attribIdentifers.Keys))
-            {
-                _attribIdentifers[key] = GL.GetAttribLocation(_shaderProgram, key);
-            }
-        }
-        private void _cacheUniformLocation()
-        {
-            foreach (string key in new List<string>(_uniformIdentifers.Keys))
-            {
-                _uniformIdentifers[key] = GL.GetUniformLocation(_shaderProgram, key);
-            }
+            _effect = effect;
         }
     }
 
     public class GlobalColorMaterial : Material
     {
         public GlobalColorMaterial(Vector4 globalColor) :
-            base(DefaultShaders.GlobalColorVertexShader, DefaultShaders.GlobalColorFragmentShader)
+            base(ShaderManager.GlobalColorEffect)
         {
             _hasGlobalColor = true;
             _globalColor = globalColor;
@@ -203,7 +140,7 @@ namespace CStrawberry3D.component
     public class BasicColorMaterial : Material
     {
         public BasicColorMaterial()
-            : base(DefaultShaders.BasicColorVertexShader, DefaultShaders.BasicColorFragmentShader)
+            : base(ShaderManager.BasicColorEffect)
         {
             _hasVertexColor = true;
         }
@@ -218,7 +155,7 @@ namespace CStrawberry3D.component
         public MeshComponent(Mesh mesh)
             : base()
         {
-            _componentName = "MeshComponent";
+            _name = "MeshComponent";
             _mesh = mesh;
         }
         public void draw(bool isTransparentPass, Matrix4 pMatrix, Matrix4 mvMatrix)

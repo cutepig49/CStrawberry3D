@@ -65,7 +65,6 @@ namespace CStrawberry3D.loader
                     //currMaterial.HasColorAmbient;
                     //currMaterial.HasColorSpecular;
                     //currMaterial.HasColorTransparent;
-                    
                     mesh.addMaterial(component.Material.createCustomMaterial(ShadingMode.Gouraud, true, true, true));
                     
                 }
@@ -78,7 +77,6 @@ namespace CStrawberry3D.loader
                     short[] indexArray = tmp.GetShortIndices();
                     float[] colorArray = _color2float(tmp.GetVertexColors(0));
                     mesh.addEntry(positionArray, indexArray, tmp.MaterialIndex, texCoordArray, normalArray, colorArray);
-
                 }
                 _assets[filePath] = mesh;
             }

@@ -1,5 +1,4 @@
 uniform vec4 uGlobalColor;
-
 void main(void) {
-	gl_FragColor = uGlobalColor;
+	gl_FragColor = vec4(0,1,1,1);
 }

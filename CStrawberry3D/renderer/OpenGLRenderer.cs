@@ -1,6 +1,7 @@
 ﻿using CStrawberry3D.component;
 using CStrawberry3D.core;
 using CStrawberry3D.scene;
+using CStrawberry3D.shader;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -33,6 +34,28 @@ namespace CStrawberry3D.renderer
             }
         }
 
+        public bool isChanged = false;
+        public string filePath;
+        private void onChanged()
+        {
+            if (!isChanged)
+                return;
+            if (filePath == ShaderManager.basicColorFragmentShaderPath || filePath == ShaderManager.basicColorVertexShaderPath)
+            {
+                ShaderManager.basicColorProgram.changeProgram(new shader.Program(ShaderManager.basicColorVertexShaderPath, ShaderManager.basicColorFragmentShaderPath));
+            }
+            else if (filePath == ShaderManager.globalColorVertexShaderPath || filePath == ShaderManager.globalColorFragmentShaderPath)
+            {
+                ShaderManager.globalColorProgram.changeProgram(new shader.Program(ShaderManager.globalColorVertexShaderPath, ShaderManager.globalColorFragmentShaderPath));
+            }
+            else if (filePath == ShaderManager.texturedVertexShaderPath || filePath == ShaderManager.texturedFragmentShaderPath)
+            {
+                ShaderManager.texturedProgram.changeProgram(new shader.Program(ShaderManager.globalColorVertexShaderPath, ShaderManager.globalColorFragmentShaderPath));
+            }
+            Console.WriteLine(string.Format("{0} changed, and re-compiled.", filePath));
+            isChanged = false;
+        }
+
         private float _totalTime = 0;
         public float totalTime
         {
@@ -60,7 +83,7 @@ namespace CStrawberry3D.renderer
         {
             if (_singleton != null)
             {
-                throw new Exception("Exception: Use D3DRenderer.getSingleton()");
+                throw new Exception("Exception: Use OpenGLRenderer.getSingleton()");
             }
             _singleton = this;
         }
@@ -97,16 +120,19 @@ namespace CStrawberry3D.renderer
         }
         private void renderFrame(object sender, FrameEventArgs e)
         {
+            onChanged();
+
             GL.Clear(ClearBufferMask.ColorBufferBit|ClearBufferMask.DepthBufferBit);
+            Matrix4 viewMatrix = Matrix4.LookAt(new Vector3(0, 0, 10), new Vector3(0, 0, 0), Vector3.UnitY);
 
             Matrix4 pMatrix = Matrix4.CreatePerspectiveFieldOfView(core.Mathf.PI / 4, (float)_window.Width / _window.Height, 0.1f, 10000);
-            pMatrix *= Matrix4.LookAt(new Vector3(0, 0, 10), new Vector3(0, 0, 0), Vector3.UnitY);
 
+            pMatrix = viewMatrix * pMatrix;
             foreach (StrawberryNode node in scene.root.getAll())
             {
                 foreach (Component component in node.components)
                 {
-                    if (component.getName() == "DirectionalLightComponent")
+                    if (component.name == "DirectionalLightComponent")
                     {
                         _renderState.directionalLights.Add(node);
                     }
@@ -118,7 +144,7 @@ namespace CStrawberry3D.renderer
                 node.updateWorldMatrix();
                 foreach (Component component in node.components)
                 {
-                    switch (component.getName())
+                    switch (component.name)
                     {
                         case "MeshComponent":
                             MeshComponent meshComponent = (MeshComponent)component;
@@ -128,14 +154,16 @@ namespace CStrawberry3D.renderer
                 }
             }
 
-            _window.SwapBuffers();
-            _renderState.restore();
 
             ErrorCode error = GL.GetError();
             if (error != ErrorCode.NoError)
             {
                 Console.WriteLine(error);
             }
+
+            _window.SwapBuffers();
+            _renderState.restore();
+
       
         }
 

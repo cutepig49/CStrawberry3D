@@ -81,6 +81,15 @@ namespace CStrawberry3D.loader
             _materials.Add(material);
         }
 
+        public void changeMaterial(int index, Effect effect)
+        {
+            //TODO
+            if (index > -1 && index < _materials.Count)
+            {
+                _materials[index].effect = effect;
+            }
+        }
+
         public void draw(bool isTransparentPass, Matrix4 pMatrix, Matrix4 mvMatrix)
         {
             foreach (Entry entry in _entries)
@@ -89,42 +98,22 @@ namespace CStrawberry3D.loader
                 if (material.isTransparent != isTransparentPass)
                     continue;
 
-                material.ready();
-
-                GL.UniformMatrix4(material.uniformIdentifers[Shader.U_PMATRIX_IDENTIFER], false, ref pMatrix);
-
-                ErrorCode error = GL.GetError();
-                if (error != ErrorCode.NoError)
+                for (int i = 0; i < material.effect.numPasses; i++)
                 {
-                    Console.WriteLine(error);
-                }
+                    material.effect.setShaderValue(Shader.U_PMATRIX_IDENTIFER, pMatrix);
+                    material.effect.setShaderValue(Shader.U_MVMATRIX_IDENTIFER, mvMatrix);
+                    material.effect.setShaderValue(Shader.U_GLOBALCOLOR_IDENTIFER, material.globalColor);
+                    material.effect.setShaderValue(Shader.A_VERTEXPOSITION_IDENTIFER, entry._positionBuffer);
+                    material.effect.setShaderValue(Shader.A_VERTEXCOLOR_IDENTIFER, entry._colorBuffer);
+                    material.effect.setShaderValue(Shader.A_TEXTURECOORD_IDENTIFER, entry._texCoordBuffer);
 
-                GL.UniformMatrix4(material.uniformIdentifers[Shader.U_MVMATRIX_IDENTIFER], false, ref mvMatrix);
+                    material.effect.beginPass(i);
 
-                 error = GL.GetError();
-                if (error != ErrorCode.NoError)
-                {
-                    Console.WriteLine(error);
-                }
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, entry._indexBuffer.bufferObject);
+                    GL.DrawElements(BeginMode.Triangles, entry._indexBuffer.numItems, DrawElementsType.UnsignedShort, 0);
 
-                if (material.hasPosition)
-                {
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, entry._positionBuffer.bufferObject);
-                    GL.VertexAttribPointer(material.attribIdentifers[Shader.A_VERTEXPOSITION_IDENTIFER], entry._positionBuffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
+                    material.effect.endPass();
                 }
-                if (material.hasTexture)
-                {
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, entry._texCoordBuffer.bufferObject);
-                    GL.VertexAttribPointer(material.attribIdentifers[Shader.A_TEXTURECOORD_IDENTIFER], entry._texCoordBuffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
-                }
-                if (material.hasColor)
-                {
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, entry._colorBuffer.bufferObject);
-                    GL.VertexAttribPointer(material.attribIdentifers[Shader.A_VERTEXCOLOR_IDENTIFER], entry._colorBuffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
-                }
-
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, entry._indexBuffer.bufferObject);
-                GL.DrawElements(BeginMode.Triangles, entry._indexBuffer.numItems, DrawElementsType.UnsignedShort, 0);
             }
         }
     }

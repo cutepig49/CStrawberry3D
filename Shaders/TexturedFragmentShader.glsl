@@ -1,7 +1,10 @@
-uniform sampler2D uSampler0;
-
-varying vec2 vTexCoord0;
-
+uniform sampler2D uSamplers[8];
+uniform int uNumSamplers;
+varying vec2 vTexCoord;
 void main(){
-	gl_FragColor = texture2D(uSampler0, vTexCoord0);
+	vec4 color = vec4(0,0,0,0);
+	for (int i=0; i<uNumSamplers; i++){
+		color = color+texture2D(uSamplers[i], vTexCoord);
+	}
+	gl_FragColor = color;
 }

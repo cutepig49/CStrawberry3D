@@ -2,7 +2,7 @@
 
 namespace CStrawberry3D.component
 {
-    class DirectionalLightComponent:Component
+   public class DirectionalLightComponent:Component
     {
         private Vector4 _diffuseColor = new Vector4(1,1,1,1);
         public Vector4 diffuseColor
@@ -31,7 +31,7 @@ namespace CStrawberry3D.component
 
         public DirectionalLightComponent():base()
         {
-            _componentName = "DirectionalLightComponent";
+            _name = "DirectionalLightComponent";
         }
     }
 }

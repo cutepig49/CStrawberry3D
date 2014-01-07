@@ -5,7 +5,7 @@ namespace CStrawberry3D.component
     {
         public CameraComponent():base()
         {
-            _componentName = "CameraComponent";
+            _name = "CameraComponent";
         }
     }
 }

@@ -204,6 +204,7 @@ namespace CStrawberry3D.core
             if (!_components.Contains(component))
             {
                 _components.Add(component);
+                component.node = this;
             }
         }
         public void addChild(StrawberryNode child)

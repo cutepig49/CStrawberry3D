@@ -1,4 +1,5 @@
-﻿
+﻿using CStrawberry3D.core;
+
 namespace CStrawberry3D.component
 {
     public class Component
@@ -11,15 +12,26 @@ namespace CStrawberry3D.component
                 return _guid;
             }
         }
-        protected string _componentName = "EmptyComponent";
-        protected bool _isActive = true;
-        public string getName()
+        protected string _name = "EmptyComponent";
+        public string name
         {
-            return _componentName;
+            get
+            {
+                return _name;
+            }
         }
-        public void setActive(bool isActive)
+        protected bool _active = true;
+        public bool active
         {
-            _isActive = isActive;
+            get
+            {
+                return _active;
+            }
+            set
+            {
+                _active = value;
+            }
         }
+        public StrawberryNode node;
     }
 }

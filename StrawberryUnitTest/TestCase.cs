@@ -39,25 +39,35 @@ namespace StrawberryUnitTest
         [TestMethod]
         public void TestTranslationWithMatrix()
         {
-            StrawberryNode parent = new StrawberryNode();
+            var parent = new StrawberryNode();
             var child = parent.createChild();
-            var child2 = child.createChild();
+            var grandchild = child.createChild();
 
-            parent.translate(new Vector3(5, 5, 10));
+            parent.translateX(10);
+            child.translateY(5);
+            grandchild.translateZ(-10);
 
-            child.translate(new Vector3(0, 0, 10));
+            grandchild.updateWorldMatrix();
 
-            child2.translate(new Vector3(10, 0, 0));
-            child2.updateWorldMatrix();
-
-            Assert.AreEqual(new Vector3(5, 5, 20), child.matrixWorld.ExtractTranslation());
-            Assert.AreEqual(new Vector3(15, 5, 20), child2.matrixWorld.ExtractTranslation());
+            Assert.AreEqual(new Vector3(10, 5, -10), grandchild.matrixWorld.ExtractTranslation());
+            Assert.AreEqual(new Vector3(10, 5, 0), child.matrixWorld.ExtractTranslation());
+            Assert.AreEqual(new Vector3(10, 0, 0), parent.matrixWorld.ExtractTranslation());
         }
+        [TestMethod]
+        public void TestComponentName()
+        {
+            var emptyComponent = new Component();
+            var cameraComponent = new CameraComponent();
+            var directionalLightComponent = new DirectionalLightComponent();
 
+            Assert.AreEqual("EmptyComponent", emptyComponent.name);
+            Assert.AreEqual("CameraComponent", cameraComponent.name);
+            Assert.AreEqual("DirectionalLightComponent", directionalLightComponent.name);
+        }
         [TestMethod]
         public void TestStrawberryNodeSetAndGet()
         {
-            StrawberryNode node = new StrawberryNode();
+            var node = new StrawberryNode();
             node.x = 10;
             node.y = 10;
             node.z = 10;
@@ -86,14 +96,11 @@ namespace StrawberryUnitTest
 
         }
         [TestMethod]
-        public void TestShadersLoading()
+        public void TestShadersCompiling()
         {
-            Assert.AreNotEqual(null, ShaderManager.GlobalColorFragmentShader);
-            Assert.AreNotEqual(null, ShaderManager.GlobalColorVertexShader);
-            Assert.AreNotEqual(null, ShaderManager.BasicColorFragmentShader);
-            Assert.AreNotEqual(null, ShaderManager.BasicColorVertexShader);
-            Assert.AreNotEqual(null, ShaderManager.TexturedFragmentShader);
-            Assert.AreNotEqual(null, ShaderManager.TexturedVertexShader);
+            Assert.AreNotEqual(null, ShaderManager.GlobalColorProgram);
+            Assert.AreNotEqual(null, ShaderManager.BasicColorProgram);
+            Assert.AreNotEqual(null, ShaderManager.TexturedProgram);
         }
     }
 }
