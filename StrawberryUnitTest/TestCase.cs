@@ -16,7 +16,7 @@ namespace StrawberryUnitTest
         public void TestInit()
         {
             _renderer = OpenGLRenderer.getSingleton();
-            _renderer.init("UnitTest", 800, 600);
+            _renderer.init("UnitTest", 800, 600, true);
         }
         [TestMethod]
         public void TestStrawberryNodeGuidAndId()
@@ -98,9 +98,9 @@ namespace StrawberryUnitTest
         [TestMethod]
         public void TestShadersCompiling()
         {
-            Assert.AreNotEqual(null, ShaderManager.GlobalColorProgram);
-            Assert.AreNotEqual(null, ShaderManager.BasicColorProgram);
-            Assert.AreNotEqual(null, ShaderManager.TexturedProgram);
+            Assert.AreNotEqual(null, ShaderManager.GlobalColorEffect);
+            Assert.AreNotEqual(null, ShaderManager.BasicColorEffect);
+            Assert.AreNotEqual(null, ShaderManager.TexturedEffect);
         }
     }
 }

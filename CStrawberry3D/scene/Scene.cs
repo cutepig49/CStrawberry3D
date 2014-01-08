@@ -19,7 +19,7 @@ namespace CStrawberry3D.scene
         {
             get
             {
-                return camera;
+                return _camera;
             }
         }
         private Vector4 _ambientColor = new Vector4(0.6f, 0.6f, 0.6f, 1);

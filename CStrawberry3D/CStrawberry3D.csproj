@@ -25,7 +25,7 @@
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>true</UseVSHostingProcess>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AssimpNet">
@@ -50,24 +53,30 @@
     <Reference Include="System.Numerics" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="Tao.DevIl, Version=1.6.8.3, Culture=neutral, PublicKeyToken=7ec4053013524957, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\TaoFramework\bin\Tao.DevIl.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="component\CameraComponent.cs" />
     <Compile Include="component\Component.cs" />
     <Compile Include="component\DirectionalLightComponent.cs" />
-    <Compile Include="component\MeshComponent.cs" />
+    <Compile Include="component\MeshComponent\Material.cs" />
+    <Compile Include="component\MeshComponent\MeshComponent.cs" />
+    <Compile Include="core\Logger.cs" />
     <Compile Include="core\Mathf.cs" />
     <Compile Include="core\StrawberryNode.cs" />
     <Compile Include="loader\Loader.cs" />
     <Compile Include="loader\Mesh.cs" />
     <Compile Include="loader\Resource.cs" />
+    <Compile Include="loader\Texture.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="renderer\OpenGLRenderer.cs" />
     <Compile Include="renderer\RenderState.cs" />
     <Compile Include="scene\Camera.cs" />
     <Compile Include="scene\Scene.cs" />
-    <Compile Include="shader\DefaultShaders.cs" />
     <Compile Include="shader\ShaderManager.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

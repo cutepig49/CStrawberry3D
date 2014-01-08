@@ -31,7 +31,7 @@ namespace CStrawberry3D.component
 
         public DirectionalLightComponent():base()
         {
-            _name = "DirectionalLightComponent";
+            _name = Component.DIRECTIONAL_LIGHT_COMPONENT;
         }
     }
 }

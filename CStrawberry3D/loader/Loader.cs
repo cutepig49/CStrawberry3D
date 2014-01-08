@@ -1,12 +1,16 @@
 ﻿using Assimp;
 using System;
 using System.Collections.Generic;
+using CStrawberry3D.component;
+using OpenTK;
+using System.Drawing;
+using Tao.DevIl;
 
 namespace CStrawberry3D.loader
 {
     public class Loader
     {
-        public static List<string> MSH = new List<string>{ ".x", ".nff"};
+        public static List<string> MESH = new List<string>{ ".x", ".nff", ".obj", ".max"};
         private static Loader _singleton;
         public static Loader getSingleton()
         {
@@ -27,6 +31,21 @@ namespace CStrawberry3D.loader
             }
             _singleton = this;
 
+            Il.ilInit();
+            Ilu.iluInit();
+            Ilut.ilutInit();
+
+            //Il.ilEnable(Il.IL_ORIGIN_SET);
+            //Il.ilOriginFunc(Il.IL_ORIGIN_LOWER_LEFT);
+
+            //Il.ilEnable(Il.IL_TYPE_SET);
+            //Il.ilTypeFunc(Il.IL_UNSIGNED_BYTE);
+
+            //Il.ilEnable(Il.IL_FORMAT_SET);
+            //Il.ilFormatFunc(Il.IL_RGB);
+
+            //Ilut.ilutRenderer(Ilut.ILUT_OPENGL);
+
             _createDefaultShapes();
         }
         public bool hasAsset(string assetName)
@@ -42,13 +61,21 @@ namespace CStrawberry3D.loader
             return (Mesh)_assets[assetName];
         }
 
+        protected int nextPowerOfTwo(int n)
+        {
+            double power = 0;
+            while (n > Math.Pow(2, power))
+                power++;
+            return (int)Math.Pow(2, power);
+        }
+
         public bool loadAsset(string filePath)
         {
             if (_assets.ContainsKey(filePath))
                 return false;
  
             string fileType = filePath.Substring(filePath.LastIndexOf(".")).ToLower();
-            if (MSH.Contains(fileType) && _importer.IsImportFormatSupported(fileType))
+            if (MESH.Contains(fileType) && _importer.IsImportFormatSupported(fileType))
             {
                 var scene = _importer.ImportFile(filePath, PostProcessSteps.Triangulate | PostProcessSteps.GenerateSmoothNormals | PostProcessSteps.FlipUVs);
                 if (scene == null)
@@ -61,21 +88,51 @@ namespace CStrawberry3D.loader
 
                     Assimp.Material currMaterial = scene.Materials[i];
 
-                    //currMaterial.HasColorDiffuse;
-                    //currMaterial.HasColorAmbient;
-                    //currMaterial.HasColorSpecular;
-                    //currMaterial.HasColorTransparent;
-                    mesh.addMaterial(component.Material.createCustomMaterial(ShadingMode.Gouraud, true, true, true));
-                    
+                    component.Material material;
+                    switch (currMaterial.ShadingMode)
+                    {
+                        case ShadingMode.Phong:
+                            
+                            material = new TexturedPhongMaterial();
+                            break;
+                        case ShadingMode.Gouraud:
+                        default:
+                            material = new GlobalColorMaterial(new Vector4(1,0,1,1));
+                            break;
+                    }
+                    mesh.addMaterial(material);
+                    List<TextureSlot> diffuseTextures = new List<TextureSlot>();
+                    for (int index = 0; i < currMaterial.GetTextureCount(TextureType.Diffuse);i++ )
+                    {
+                        diffuseTextures.Add(currMaterial.GetTexture(TextureType.Diffuse, index));
+                    }
+                    foreach (var diffuse in diffuseTextures)
+                    {
+                        var ilImage = Il.ilGenImage();
+                        Il.ilBindImage(ilImage);
+                        Il.ilLoadImage(diffuse.FilePath);
+                        var width = Il.ilGetInteger(Il.IL_IMAGE_WIDTH);
+                        var tex_width = nextPowerOfTwo(width);
+                        var height = Il.ilGetInteger(Il.IL_IMAGE_HEIGHT);
+                        var tex_height = nextPowerOfTwo(height);
+                        var image_depth = Il.ilGetInteger(Il.IL_IMAGE_DEPTH);
+                        Ilu.iluFlipImage();
+                        Il.ilConvertImage(Il.IL_RGBA, Il.IL_UNSIGNED_BYTE);
+                        var texture = new Texture(width, height, Il.ilGetData());
+                        //var textureObject = Ilut.ilutGLLoadImage(diffuse.FilePath);
+                        //var texture = new Texture(textureObject);
+                        mesh.addDiffuseTexture(texture);
+                    }
+
                 }
                 for (int i = 0; i < scene.MeshCount; i++)
                 {
                     Assimp.Mesh tmp = scene.Meshes[i];
-                    float[] positionArray = _vector2float(tmp.Vertices);
-                    float[] normalArray = _vector2float(tmp.Normals);
-                    float[] texCoordArray = _vector2float(tmp.GetTextureCoords(0));
+                    float[] positionArray = _vector3ToFloat(tmp.Vertices);
+                    float[] normalArray = _vector3ToFloat(tmp.Normals);
+                    float[] texCoordArray = _vector3ToCoord(tmp.GetTextureCoords(0));
                     short[] indexArray = tmp.GetShortIndices();
-                    float[] colorArray = _color2float(tmp.GetVertexColors(0));
+                    float[] colorArray = _color4ToFloat(tmp.GetVertexColors(0));
                     mesh.addEntry(positionArray, indexArray, tmp.MaterialIndex, texCoordArray, normalArray, colorArray);
                 }
                 _assets[filePath] = mesh;
@@ -107,13 +164,26 @@ namespace CStrawberry3D.loader
             _assets.Remove(assetName);
             return true;
         }
-        private float[] _vector2float(Assimp.Vector3D[] vertices)
+        private float[] _vector3ToCoord(Assimp.Vector3D[] vertices)
         {
             if (vertices == null)
                 return null;
 
             List<float> newVertices = new List<float>();
-            foreach (Assimp.Vector3D vertex in vertices)
+            foreach (var vertex in vertices)
+            {
+                newVertices.Add(vertex.X);
+                newVertices.Add(vertex.Y);
+            }
+            return newVertices.ToArray();
+        }
+        private float[] _vector3ToFloat(Assimp.Vector3D[] vertices)
+        {
+            if (vertices == null)
+                return null;
+
+            List<float> newVertices = new List<float>();
+            foreach (var vertex in vertices)
             {
                 newVertices.Add(vertex.X);
                 newVertices.Add(vertex.Y);
@@ -121,12 +191,12 @@ namespace CStrawberry3D.loader
             }
             return newVertices.ToArray();
         }
-        private float[] _color2float(Assimp.Color4D[] vertices)
+        private float[] _color4ToFloat(Assimp.Color4D[] vertices)
         {
             if (vertices == null)
                 return null;
             List<float> newVertices = new List<float>();
-            foreach (Assimp.Color4D vertex in vertices)
+            foreach (var vertex in vertices)
             {
                 newVertices.Add(vertex.R);
                 newVertices.Add(vertex.G);

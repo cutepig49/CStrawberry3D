@@ -1,10 +1,12 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using OpenTK;
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.IO;
 using CStrawberry3D.loader;
 using CStrawberry3D.renderer;
+using CStrawberry3D.core;
 
 using Buffer = CStrawberry3D.loader.Buffer;
 
@@ -12,19 +14,22 @@ namespace CStrawberry3D.shader
 {
     public static class ShaderManager
     {
-        public const string globalColorVertexShaderPath = "..\\..\\..\\Shaders\\GlobalColorVertexShader.glsl";
-        public const string globalColorFragmentShaderPath = "..\\..\\..\\Shaders\\GlobalColorFragmentShader.glsl";
-        public const string basicColorVertexShaderPath = "..\\..\\..\\Shaders\\BasicColorVertexShader.glsl";
-        public const string basicColorFragmentShaderPath = "..\\..\\..\\Shaders\\BasicColorFragmentShader.glsl";
-        public const string texturedVertexShaderPath = "..\\..\\..\\Shaders\\TexturedVertexShader.glsl";
-        public const string texturedFragmentShaderPath = "..\\..\\..\\Shaders\\TexturedFragmentShader.glsl";
+        public const string shaderDir = @"..\..\..\Shaders\";
+        public const string globalColorVertexShaderPath = shaderDir + "GlobalColorVertexShader.glsl";
+        public const string globalColorFragmentShaderPath = shaderDir + "GlobalColorFragmentShader.glsl";
+        public const string basicColorVertexShaderPath = shaderDir + "BasicColorVertexShader.glsl";
+        public const string basicColorFragmentShaderPath = shaderDir + "BasicColorFragmentShader.glsl";
+        public const string texturedVertexShaderPath = shaderDir + "TexturedVertexShader.glsl";
+        public const string texturedFragmentShaderPath = shaderDir + "TexturedFragmentShader.glsl";
+        public const string texturedPhongVertexShaderPath = shaderDir + "TexturedPhongVertexShader.glsl";
+        public const string texturedPhongFragmentShaderPath = shaderDir + "TexturedPhongFragmentShader.glsl";
 
-        public readonly static Shader GlobalColorVertexShader;
-        public readonly static Shader GlobalColorFragmentShader;
-        public readonly static Shader BasicColorVertexShader;
-        public readonly static Shader BasicColorFragmentShader;
-        public readonly static Shader TexturedVertexShader;
-        public readonly static Shader TexturedFragmentShader;
+        //public readonly static Shader GlobalColorVertexShader;
+        //public readonly static Shader GlobalColorFragmentShader;
+        //public readonly static Shader BasicColorVertexShader;
+        //public readonly static Shader BasicColorFragmentShader;
+        //public readonly static Shader TexturedVertexShader;
+        //public readonly static Shader TexturedFragmentShader;
 
         private static Program _globalColorProgram;
         public static Program globalColorProgram
@@ -36,9 +41,7 @@ namespace CStrawberry3D.shader
             set
             {
                 if (value != null)
-                {
                     _globalColorProgram = value;
-                }
             }
         }
         private static Program _basicColorProgram;
@@ -51,9 +54,7 @@ namespace CStrawberry3D.shader
             set
             {
                 if (value != null)
-                {
                     _basicColorProgram = value;
-                }
             }
         }
         private static Program _texturedProgram;
@@ -66,16 +67,28 @@ namespace CStrawberry3D.shader
             set
             {
                 if (value != null)
-                {
                     _texturedProgram = value;
-                }
             }
 
+        }
+        private static Program _texturedPhongProgram;
+        public static Program texturedPhongProgram
+        {
+            get
+            {
+                return _texturedPhongProgram;
+            }
+            set
+            {
+                if (value != null)
+                    _texturedPhongProgram = value;
+            }
         }
 
         public readonly static Effect GlobalColorEffect;
         public readonly static Effect BasicColorEffect;
         public readonly static Effect TexturedEffect;
+        public readonly static Effect TexturedPhongEffect;
 
         private static FileSystemWatcher _fileWatcher = new FileSystemWatcher();
         static ShaderManager()
@@ -89,7 +102,10 @@ namespace CStrawberry3D.shader
             _texturedProgram = new Program(texturedVertexShaderPath, texturedFragmentShaderPath);
             TexturedEffect = new Effect(new Program[] { _texturedProgram });
 
-            _fileWatcher.Path = "..\\..\\..\\Shaders";
+            _texturedPhongProgram = new Program(texturedPhongVertexShaderPath, texturedPhongFragmentShaderPath);
+            TexturedPhongEffect = new Effect(new Program[] { _texturedPhongProgram });
+
+            _fileWatcher.Path = shaderDir;
             _fileWatcher.Filter = "*.glsl";
             _fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
             _fileWatcher.Changed += new FileSystemEventHandler(shaderChanged);
@@ -97,6 +113,8 @@ namespace CStrawberry3D.shader
         }
         private static void shaderChanged(object source, FileSystemEventArgs e)
         {
+            //等待片刻，防止发生IO独占错误。
+            Thread.Sleep(100);
             OpenGLRenderer.getSingleton().isChanged = true;
             OpenGLRenderer.getSingleton().filePath = e.FullPath;
         }
@@ -106,18 +124,38 @@ namespace CStrawberry3D.shader
         private Dictionary<string, int> _uniformIdentifers = new Dictionary<string, int>(){
             {Shader.U_MVMATRIX_IDENTIFER, -1},
             {Shader.U_PMATRIX_IDENTIFER, -1},
-            {Shader.U_SAMPLER_IDENTIFER, -1},
-            {Shader.U_GLOBALCOLOR_IDENTIFER, -1},
+            {Shader.U_VMATRIX_IDENTIFER, -1},
             {Shader.U_NMATRIX_IDENTIFER, -1},
-            {Shader.U_ACOLOR_IDENTIFER, -1},
-            {Shader.U_DCOLOR_IDENTIFER, -1},
-            {Shader.U_LIGHTDIR_IDENTIFER, -1}
+            {Shader.U_SAMPLERS_IDENTIFER, -1},
+            {Shader.U_NUM_SAMPLERS_IDENTIFER, -1},
+            {Shader.U_GLOBAL_COLOR_IDENTIFER, -1},
+            {Shader.U_AMBIENT_COLOR_IDENTIFER, -1},
+            {Shader.U_DIFFUSE_COLOR_IDENTIFER, -1},
+            {Shader.U_DIRECTIONS, -1},
+            {Shader.U_NUM_DIRECTIONS_IDENTIFER, -1},
+            {Shader.U_DIRECTIONAL_LIGHTS_IDENTIFER, -1},
+            {Shader.U_AMBIENT_LIGHT_IDENTIFER, -1}
         };
+        public Dictionary<string, int> uniformIdentifer
+        {
+            get
+            {
+                return _uniformIdentifers;
+            }
+        }
         private Dictionary<string, int> _attribIdentifers = new Dictionary<string, int>(){
             {Shader.A_TEXTURECOORD_IDENTIFER, -1},
             {Shader.A_VERTEXCOLOR_IDENTIFER, -1},
-            {Shader.A_VERTEXPOSITION_IDENTIFER, -1}
+            {Shader.A_VERTEXPOSITION_IDENTIFER, -1},
+            {Shader.A_VERTEXNORMAL_IDENTIFER, -1}
         };
+        public Dictionary<string, int> attribIdentifers
+        {
+            get
+            {
+                return _attribIdentifers;
+            }
+        }
         private int _program;
         public int program
         {
@@ -148,7 +186,7 @@ namespace CStrawberry3D.shader
             GL.GetProgram(program, GetProgramParameterName.LinkStatus, out result);
             if (result != 1)
             {
-                Console.WriteLine("Could not initialise shaders");
+                Logger.getSingleton().error("Could not initialise shaders.");
                 return;
             }
 
@@ -189,6 +227,16 @@ namespace CStrawberry3D.shader
                             GL.BindBuffer(BufferTarget.ArrayBuffer, buffer.bufferObject);
                             GL.VertexAttribPointer(_attribIdentifers[key], buffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
                             break;
+                        case Shader.A_VERTEXNORMAL_IDENTIFER:
+                            identifer = Shader.A_VERTEXNORMAL_IDENTIFER;
+                            GL.EnableVertexAttribArray(_attribIdentifers[identifer]);
+                            buffer = (Buffer)shaderValues[identifer];
+                            GL.BindBuffer(BufferTarget.ArrayBuffer, buffer.bufferObject);
+                            GL.VertexAttribPointer(_attribIdentifers[key], buffer.itemSize, VertexAttribPointerType.Float, false, 0, 0);
+                            break;
+                        default:
+                            Logger.getSingleton().error(string.Format("Identifer '{0}' lost!", key));
+                            break;
                     }
                 }
             }
@@ -198,10 +246,11 @@ namespace CStrawberry3D.shader
                 {
                     //TODO the same.
                     string identifer;
+                    List<float> floats;
                     switch (key)
                     {
-                        case Shader.U_GLOBALCOLOR_IDENTIFER:
-                            identifer = Shader.U_GLOBALCOLOR_IDENTIFER;
+                        case Shader.U_GLOBAL_COLOR_IDENTIFER:
+                            identifer = Shader.U_GLOBAL_COLOR_IDENTIFER;
                             GL.Uniform4(_uniformIdentifers[identifer], (Vector4)shaderValues[identifer]);
                             break;
                         case Shader.U_PMATRIX_IDENTIFER:
@@ -214,7 +263,64 @@ namespace CStrawberry3D.shader
                             var mvMatrix = (Matrix4)shaderValues[identifer];
                             GL.UniformMatrix4(_uniformIdentifers[identifer], false, ref mvMatrix);
                             break;
-
+                        case Shader.U_VMATRIX_IDENTIFER:
+                            identifer = Shader.U_VMATRIX_IDENTIFER;
+                            var vMatrix = (Matrix4)shaderValues[identifer];
+                            GL.UniformMatrix4(_uniformIdentifers[identifer], false, ref vMatrix);
+                            break;
+                        case Shader.U_SAMPLERS_IDENTIFER:
+                            identifer = Shader.U_SAMPLERS_IDENTIFER;
+                            var samplers = (int[])shaderValues[identifer];
+                            GL.Uniform1(_uniformIdentifers[identifer], samplers.Length, samplers);
+                            break;
+                        case Shader.U_NUM_SAMPLERS_IDENTIFER:
+                            identifer = Shader.U_NUM_SAMPLERS_IDENTIFER;
+                            var numSamplers = (int)shaderValues[identifer];
+                            GL.Uniform1(_uniformIdentifers[identifer], numSamplers);
+                            break;
+                        case Shader.U_NUM_DIRECTIONS_IDENTIFER:
+                            identifer = Shader.U_NUM_DIRECTIONS_IDENTIFER;
+                            var numDirections = (int)shaderValues[identifer];
+                            GL.Uniform1(_uniformIdentifers[identifer], numDirections);
+                            break;
+                        case Shader.U_DIRECTIONS:
+                            identifer = Shader.U_DIRECTIONS;
+                            var directions = (List<Vector3>)shaderValues[identifer];
+                            floats = new List<float>();
+                            foreach (var vec in directions)
+                            {
+                                floats.Add(vec.X);
+                                floats.Add(vec.Y);
+                                floats.Add(vec.Z);
+                            }
+                            GL.Uniform3(_uniformIdentifers[identifer], floats.Count/3, floats.ToArray());
+                            break;
+                        case Shader.U_NMATRIX_IDENTIFER:
+                            identifer = Shader.U_NMATRIX_IDENTIFER;
+                            var nMatrix = (Matrix4)shaderValues[Shader.U_NMATRIX_IDENTIFER];
+                            GL.UniformMatrix4(_uniformIdentifers[Shader.U_NMATRIX_IDENTIFER], false, ref nMatrix);
+                            break;
+                        case Shader.U_AMBIENT_LIGHT_IDENTIFER:
+                            identifer = Shader.U_AMBIENT_LIGHT_IDENTIFER;
+                            var ambientLight = (Vector4)shaderValues[Shader.U_AMBIENT_LIGHT_IDENTIFER];
+                            GL.Uniform4(_uniformIdentifers[Shader.U_AMBIENT_LIGHT_IDENTIFER], ambientLight);
+                            break;
+                        case Shader.U_DIRECTIONAL_LIGHTS_IDENTIFER:
+                            identifer = Shader.U_DIRECTIONAL_LIGHTS_IDENTIFER;
+                            var directionalLights = (List<Vector4>)shaderValues[Shader.U_DIRECTIONAL_LIGHTS_IDENTIFER];
+                            floats = new List<float>();
+                            foreach (var vec in directionalLights)
+                            {
+                                floats.Add(vec.X);
+                                floats.Add(vec.Y);
+                                floats.Add(vec.Z);
+                                floats.Add(vec.W);
+                            }
+                            GL.Uniform4(_uniformIdentifers[identifer], floats.Count/4, floats.ToArray());
+                            break;
+                        default:
+                            Logger.getSingleton().error(string.Format("Identifer '{0}' lost!", key));
+                            break;
                     }
                 }
             }
@@ -277,6 +383,23 @@ namespace CStrawberry3D.shader
         public void beginPass(int index)
         {
             _currIndex = index;
+            foreach (var key in _shaderValues.Keys)
+            {
+                if (key[0] == 'a')
+                {
+                    if (!_programs[_currIndex].attribIdentifers.ContainsKey(key))
+                    {
+                        Logger.getSingleton().error("Identifer " + key + " not cached!");
+                    }
+                }
+                else if (key[0] == 'u')
+                {
+                    if (!_programs[_currIndex].uniformIdentifer.ContainsKey(key))
+                    {
+                        Logger.getSingleton().error("Identifer " + key + " not cached!");
+                    }
+                }
+            }
             _programs[index].enable(_shaderValues);
         }
         public void endPass()
@@ -288,18 +411,48 @@ namespace CStrawberry3D.shader
 
     public class Shader
     {
+        //投影矩阵
         public const string U_PMATRIX_IDENTIFER = "uPMatrix";
+        //世界矩阵
         public const string U_MVMATRIX_IDENTIFER = "uMVMatrix";
-        public const string U_GLOBALCOLOR_IDENTIFER = "uGlobalColor";
-        public const string U_SAMPLER_IDENTIFER = "uSampler";
+        //观察矩阵
+        public const string U_VMATRIX_IDENTIFER = "uVMatrix";
+        //法线变换矩阵
         public const string U_NMATRIX_IDENTIFER = "uNMatrix";
-        public const string U_ACOLOR_IDENTIFER = "uAmbientColor";
-        public const string U_DCOLOR_IDENTIFER = "uDirectionalColor";
-        public const string U_LIGHTDIR_IDENTIFER = "uLightingDirection";
-        public const string U_DLIGHTS_IDENTIFER = "uDirectionalNum";
+        //全局颜色
+        public const string U_GLOBAL_COLOR_IDENTIFER = "uGlobalColor";
+        //贴图数组
+        public const string U_SAMPLERS_IDENTIFER = "uSamplers";
+        //贴图个数
+        public const string U_NUM_SAMPLERS_IDENTIFER = "uNumSamplers";
+        //材质环境光反射颜色
+        public const string U_AMBIENT_COLOR_IDENTIFER = "uAmbientColor";
+        //材质漫反射颜色
+        public const string U_DIFFUSE_COLOR_IDENTIFER = "uDiffuseColor";
+        //材质镜面反射颜色
+        public const string U_SPECULAR_COLOR_IDENTIFER = "uSpecularColor";
+        //环境光颜色
+        public const string U_AMBIENT_LIGHT_IDENTIFER = "uAmbientLight";
+        //方向光方向数组
+        public const string U_DIRECTIONS = "uDirections";
+        //方向光颜色数组
+        public const string U_DIRECTIONAL_LIGHTS_IDENTIFER = "uDirectionalLights";
+        //方向光个数
+        public const string U_NUM_DIRECTIONS_IDENTIFER = "uNumDirections";
+        //顶点位置
         public const string A_VERTEXPOSITION_IDENTIFER = "aVertexPosition";
+        //UV坐标
         public const string A_TEXTURECOORD_IDENTIFER = "aTextureCoord";
+        //顶点颜色
         public const string A_VERTEXCOLOR_IDENTIFER = "aVertexColor";
+        //顶点法线
+        public const string A_VERTEXNORMAL_IDENTIFER = "aVertexNormal";
+        //点光源位置数组
+        public const string U_POINTS_IDENTIFER = "uPoints";
+        //点光源颜色数组
+        public const string U_POINT_LIGHTS_IDENTIFER = "uPointLights";
+        //点光源个数
+        public const string U_NUM_POINTS_IDENTIFER = "uNumPoints";
 
         private string _shaderScript;
         private ShaderType _shaderType;
@@ -323,7 +476,7 @@ namespace CStrawberry3D.shader
             GL.GetShader(_shaderObject, ShaderParameter.CompileStatus, out result);
             if (result != 1)
             {
-                Console.WriteLine(GL.GetShaderInfoLog(_shaderObject));
+                Logger.getSingleton().error(GL.GetShaderInfoLog(_shaderObject));
             }
         }
     }

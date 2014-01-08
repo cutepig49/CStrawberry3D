@@ -4,6 +4,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
+using CStrawberry3D.renderer;
 
 namespace CStrawberry3D.loader
 {
@@ -32,9 +33,7 @@ namespace CStrawberry3D.loader
     {
         private List<Material> _materials = new List<Material>();
         private List<Entry> _entries = new List<Entry>();
-
-        private bool _hasColor;
-
+        private List<Texture> _diffuseTextures = new List<Texture>();
 
         public void addEntry(float[] positionArray, short[] indexArray, int materialIndex, float[] texCoordArray = null, float[] normalArray = null, float[] colorArray = null)
         {
@@ -81,6 +80,11 @@ namespace CStrawberry3D.loader
             _materials.Add(material);
         }
 
+        public void addDiffuseTexture(Texture texture)
+        {
+            _diffuseTextures.Add(texture);
+        }
+
         public void changeMaterial(int index, Effect effect)
         {
             //TODO
@@ -102,10 +106,26 @@ namespace CStrawberry3D.loader
                 {
                     material.effect.setShaderValue(Shader.U_PMATRIX_IDENTIFER, pMatrix);
                     material.effect.setShaderValue(Shader.U_MVMATRIX_IDENTIFER, mvMatrix);
-                    material.effect.setShaderValue(Shader.U_GLOBALCOLOR_IDENTIFER, material.globalColor);
+                    mvMatrix.Invert();
+                    mvMatrix.Transpose();
+                    var nMatrix = mvMatrix;
+                    material.effect.setShaderValue(Shader.U_NMATRIX_IDENTIFER, nMatrix);
+                    material.effect.setShaderValue(Shader.U_VMATRIX_IDENTIFER, OpenGLRenderer.getSingleton().renderState.viewMatrix);
+                    material.effect.setShaderValue(Shader.U_GLOBAL_COLOR_IDENTIFER, material.globalColor);
                     material.effect.setShaderValue(Shader.A_VERTEXPOSITION_IDENTIFER, entry._positionBuffer);
                     material.effect.setShaderValue(Shader.A_VERTEXCOLOR_IDENTIFER, entry._colorBuffer);
                     material.effect.setShaderValue(Shader.A_TEXTURECOORD_IDENTIFER, entry._texCoordBuffer);
+                    material.effect.setShaderValue(Shader.A_VERTEXNORMAL_IDENTIFER, entry._normalBuffer);
+                    material.effect.setShaderValue(Shader.U_AMBIENT_LIGHT_IDENTIFER, OpenGLRenderer.getSingleton().renderState.ambientLight);
+                    material.effect.setShaderValue(Shader.U_NUM_DIRECTIONS_IDENTIFER, OpenGLRenderer.getSingleton().renderState.directionalLights.Count);
+                    material.effect.setShaderValue(Shader.U_DIRECTIONS, OpenGLRenderer.getSingleton().renderState.directions);
+                    material.effect.setShaderValue(Shader.U_DIRECTIONAL_LIGHTS_IDENTIFER, OpenGLRenderer.getSingleton().renderState.directionalLights);
+                    //TODO: too ugly
+                    material.effect.setShaderValue(Shader.U_NUM_SAMPLERS_IDENTIFER, _diffuseTextures.Count);
+                    //GL.ActiveTexture(TextureUnit.Texture0);
+                    for (int index = 0; index < _diffuseTextures.Count; index++ )
+                        GL.BindTexture(TextureTarget.Texture2D, _diffuseTextures[index].textureObject);
+                    material.effect.setShaderValue(Shader.U_SAMPLERS_IDENTIFER, new int[] {0});
 
                     material.effect.beginPass(i);
 

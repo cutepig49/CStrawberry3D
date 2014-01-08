@@ -35,6 +35,18 @@ namespace CStrawberry3D.core
         private List<StrawberryNode> _children = new List<StrawberryNode>();
         protected Vector3 _up = new Vector3();
         protected Vector3 _translation = new Vector3();
+        public Vector3 forward
+        {
+            get
+            {
+                updateWorldMatrix();
+                var tmp = _matrixWorld.ExtractRotation();
+                var euler = Mathf.quaternionToEuler(tmp);
+                if (euler == Vector3.Zero)
+                    euler = Vector3.UnitZ;
+                return euler;
+            }
+        }
         public Vector3 translation
         {
             get
@@ -225,6 +237,16 @@ namespace CStrawberry3D.core
             var child = new StrawberryNode();
             addChild(child);
             return child;
+        }
+        public Component[] getComponent(string componentName)
+        {
+            List<Component> components = new List<Component>();
+            foreach (var component in _components)
+            {
+                if (component.name == componentName)
+                    components.Add(component);
+            }
+            return components.ToArray();
         }
         public List<StrawberryNode> getAll()
         {

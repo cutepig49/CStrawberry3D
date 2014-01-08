@@ -29,4 +29,6 @@ _ReSharper*/
 $tf*/
 CodeLine.txt
 count.bat
-packages\AForge.Math.2.2.5*/
+/packages
+
+/.nuget

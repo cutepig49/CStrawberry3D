@@ -4,6 +4,10 @@ namespace CStrawberry3D.component
 {
     public class Component
     {
+        public const string EMPTY_COMPONENT = "EmptyComponent";
+        public const string MESH_COMPONENT = "MeshComponent";
+        public const string DIRECTIONAL_LIGHT_COMPONENT = "DirectionalLightComponent";
+
         private string _guid = System.Guid.NewGuid().ToString();
         public string guid
         {
@@ -12,7 +16,7 @@ namespace CStrawberry3D.component
                 return _guid;
             }
         }
-        protected string _name = "EmptyComponent";
+        protected string _name = EMPTY_COMPONENT;
         public string name
         {
             get
