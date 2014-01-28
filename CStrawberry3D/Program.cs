@@ -1,11 +1,10 @@
-﻿using CStrawberry3D.component;
-using CStrawberry3D.loader;
-using CStrawberry3D.renderer;
-using CStrawberry3D.shader;
-using CStrawberry3D.core;
+﻿using CStrawberry3D.Component;
+using CStrawberry3D.Core;
 using System.IO;
 using OpenTK;
 using System;
+using CStrawberry3D.TK;
+using CStrawberry3D.Interface;
 
 namespace CStrawberry3D
 {
@@ -19,33 +18,74 @@ namespace CStrawberry3D
         [STAThread]
         static void Main()
         {
-            var renderer = OpenGLRenderer.getSingleton();
-            renderer.init("CStrawberry3D", 1024, 768, true);
-
+            var renderer = TKRenderer.Singleton;
+            renderer.Init("CStrawberry3D", 1024, 768);
 
             var file = "Tiger.x";
+            renderer.Loader.LoadAsset(file);
+            var mesh = renderer.Loader.GetMesh(file);
+            var node = renderer.Scene.Root.CreateChild();
+            node.AddComponent(new MeshComponent(mesh));
 
-            Loader.getSingleton().loadAsset(file);
-            var cubeMesh = Loader.getSingleton().getMesh(file);
-            var component = new MeshComponent(cubeMesh);
-            renderer.scene.camera.z = 1;
+            renderer.Scene.Camera.Z = 10;
+            //renderer.Scene.AmbientLight = new Vector4();
 
-            var cubeNode = renderer.scene.root.createChild();
-            cubeNode.addComponent(component);
-            cubeNode.z = -5;
-            cubeNode.y = 1;
+            var d = renderer.Scene.AddDirectionalLight();
+            d.Ry = Mathf.DegreeToRadian(90);
 
-            var directionalLight = renderer.scene.root.createChild();
-            directionalLight.rx = Mathf.degreeToRadian(90);
-            var lightComponent = new DirectionalLightComponent();
-            directionalLight.addComponent(lightComponent);
+            //d = renderer.Scene.CreateDirectionalLight();
+            d.Rx = Mathf.DegreeToRadian(90);
 
-            directionalLight = renderer.scene.root.createChild();
-            directionalLight.addComponent(lightComponent);
+            renderer.UpdateFrame = Update;
 
-            renderer.scene.ambientColor = new Vector4(0, 0, 0, 1);
+            renderer.Device.ClearColor = new Vector4();
 
-            renderer.run();
+            renderer.Run();
+        }
+        static void Update(TKRenderer renderer, float dt)
+        {
+            if (renderer.Input.KeyDown(Key.Up))
+            {
+                renderer.Scene.Root.GetAll()[1].TranslateY(dt);
+            }
+            if (renderer.Input.KeyDown(Key.Down))
+            {
+                renderer.Scene.Root.GetAll()[1].TranslateY(-dt);
+            }
+            //if (Input.KeyDown(Key.Left))
+            //{
+            //    Scene.Root.GetAll()[1].ScaleX(Clock.Delta);
+            //}
+            //if (Input.KeyDown(Key.Right))
+            //{
+            //    Scene.Root.GetAll()[1].ScaleX(-Clock.Delta);
+            //}
+            if (renderer.Input.KeyDown(Key.PageDown))
+            {
+                renderer.Scene.Root.GetAll()[1].TranslateZ(dt);
+            }
+            if (renderer.Input.KeyDown(Key.PageUp))
+            {
+                renderer.Scene.Root.GetAll()[1].TranslateZ(-dt);
+            }
+
+            if (renderer.Input.MouseRB)
+            {
+                renderer.Scene.Camera.RotateX(Mathf.DegreeToRadian(renderer.Input.DeltaY));
+                renderer.Scene.Camera.RotateY(Mathf.DegreeToRadian(renderer.Input.DeltaX));
+            }
+            if (renderer.Input.MouseLB)
+            {
+                renderer.Scene.Root.GetAll()[1].RotateX(Mathf.DegreeToRadian(renderer.Input.DeltaY));
+                renderer.Scene.Root.GetAll()[1].RotateY(Mathf.DegreeToRadian(renderer.Input.DeltaX));
+            }
+            if (renderer.Input.KeyDown(Key.Space))
+            {
+                renderer.GBuffer.Textures[0].SaveToPng("debug\\position.png");
+                renderer.GBuffer.Textures[1].SaveToPng("debug\\diffuse.png");
+                renderer.GBuffer.Textures[2].SaveToPng("debug\\normal.png");
+                renderer.GBuffer.DepthTexture.SaveToPng("debug\\depth.png");
+            }
         }
     }
 }

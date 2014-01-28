@@ -1,37 +1,17 @@
 ﻿using OpenTK;
 
-namespace CStrawberry3D.component
+namespace CStrawberry3D.Component
 {
-   public class DirectionalLightComponent:Component
+   public class DirectionalLightComponent:EmptyComponent
     {
-        private Vector4 _diffuseColor = new Vector4(1,1,1,1);
-        public Vector4 diffuseColor
-        {
-            get
-            {
-                return _diffuseColor;
-            }
-            set
-            {
-                _diffuseColor = value;
-            }
-        }
-        private Vector4 _specularColor = new Vector4(1,1,1,1);
-        public Vector4 specularColor
-        {
-            get
-            {
-                return _specularColor;
-            }
-            set
-            {
-                _specularColor = value;
-            }
-        }
+       public Vector4 DiffuseColor { get; set; }
+       public Vector4 SpecularColor { get; set; }
 
         public DirectionalLightComponent():base()
         {
-            _name = Component.DIRECTIONAL_LIGHT_COMPONENT;
+            Name = DIRECTIONAL_LIGHT_COMPONENT;
+            DiffuseColor = new Vector4(1, 1, 1, 1);
+            SpecularColor = new Vector4(1, 1, 1, 1);
         }
     }
 }

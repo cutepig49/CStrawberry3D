@@ -1,7 +1,7 @@
 ﻿
-namespace CStrawberry3D.loader
-{
-    public class Resource
-    {
-    }
-}
+//namespace CStrawberry3D.Loader
+//{
+//    public class Resource
+//    {
+//    }
+//}

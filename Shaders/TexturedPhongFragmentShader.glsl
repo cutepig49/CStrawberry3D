@@ -1,5 +1,7 @@
-varying vec2 vTextureCoord;
-varying vec3 vLightWeighting;
+#version 130
+
+in vec2 vTextureCoord;
+in vec3 vLightWeighting;
 
 uniform int uNumSamplers;
 uniform sampler2D uSamplers[8];

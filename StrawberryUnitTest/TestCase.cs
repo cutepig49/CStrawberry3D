@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CStrawberry3D.core;
-using CStrawberry3D.component;
+using CStrawberry3D.Core;
+using CStrawberry3D.Component;
 using CStrawberry3D.renderer;
 using CStrawberry3D.shader;
 using OpenTK;
@@ -22,7 +22,7 @@ namespace StrawberryUnitTest
         public void TestStrawberryNodeGuidAndId()
         {
             var node1 = _renderer.scene.root;
-            var node2 = node1.createChild();
+            var node2 = node1.CreateChild();
 
             Assert.AreEqual(true, node1.id != node2.id);
             Assert.AreEqual(true, node1.guid != node2.guid);
@@ -30,8 +30,8 @@ namespace StrawberryUnitTest
         [TestMethod]
         public void TestComponentGuid()
         {
-            Component component1 = new Component();
-            Component component2 = new Component();
+            EmptyComponent component1 = new EmptyComponent();
+            EmptyComponent component2 = new EmptyComponent();
 
             Assert.AreEqual(false, component1.guid == component2.guid);
         }
@@ -40,14 +40,14 @@ namespace StrawberryUnitTest
         public void TestTranslationWithMatrix()
         {
             var parent = new StrawberryNode();
-            var child = parent.createChild();
-            var grandchild = child.createChild();
+            var child = parent.CreateChild();
+            var grandchild = child.CreateChild();
 
-            parent.translateX(10);
-            child.translateY(5);
-            grandchild.translateZ(-10);
+            parent.TranslateX(10);
+            child.TranslateY(5);
+            grandchild.TranslateZ(-10);
 
-            grandchild.updateWorldMatrix();
+            grandchild.UpdateWorldMatrix();
 
             Assert.AreEqual(new Vector3(10, 5, -10), grandchild.matrixWorld.ExtractTranslation());
             Assert.AreEqual(new Vector3(10, 5, 0), child.matrixWorld.ExtractTranslation());
@@ -56,7 +56,7 @@ namespace StrawberryUnitTest
         [TestMethod]
         public void TestComponentName()
         {
-            var emptyComponent = new Component();
+            var emptyComponent = new EmptyComponent();
             var cameraComponent = new CameraComponent();
             var directionalLightComponent = new DirectionalLightComponent();
 
@@ -68,31 +68,31 @@ namespace StrawberryUnitTest
         public void TestStrawberryNodeSetAndGet()
         {
             var node = new StrawberryNode();
-            node.x = 10;
-            node.y = 10;
-            node.z = 10;
-            node.rx = 10;
-            node.ry = 10;
-            node.rz = 10;
+            node.X = 10;
+            node.Y = 10;
+            node.Z = 10;
+            node.Rx = 10;
+            node.Ry = 10;
+            node.Rz = 10;
 
             Assert.AreEqual(10, node.translation.X);
-            Assert.AreEqual(true, node.translation.X == node.x);
+            Assert.AreEqual(true, node.translation.X == node.X);
             Assert.AreEqual(10, node.translation.Y);
-            Assert.AreEqual(true, node.translation.Y == node.y);
+            Assert.AreEqual(true, node.translation.Y == node.Y);
             Assert.AreEqual(10, node.translation.Z);
-            Assert.AreEqual(true, node.translation.Z == node.z);
+            Assert.AreEqual(true, node.translation.Z == node.Z);
             Assert.AreEqual(10, node.rotation.X);
-            Assert.AreEqual(true, node.rotation.X == node.rx);
+            Assert.AreEqual(true, node.rotation.X == node.Rx);
             Assert.AreEqual(10, node.rotation.Y);
-            Assert.AreEqual(true, node.rotation.Y == node.ry);
+            Assert.AreEqual(true, node.rotation.Y == node.Ry);
             Assert.AreEqual(10, node.rotation.Z);
-            Assert.AreEqual(true, node.rotation.Z == node.rz);
+            Assert.AreEqual(true, node.rotation.Z == node.Rz);
         }
         [TestMethod]
         public void TestDegreeAndRadianConverter()
         {
-            Assert.AreEqual(CStrawberry3D.core.Mathf.PI, CStrawberry3D.core.Mathf.degreeToRadian(180));
-            Assert.AreEqual(180, CStrawberry3D.core.Mathf.radianToDegree(CStrawberry3D.core.Mathf.PI));
+            Assert.AreEqual(CStrawberry3D.Core.Mathf.PI, CStrawberry3D.Core.Mathf.DegreeToRadian(180));
+            Assert.AreEqual(180, CStrawberry3D.Core.Mathf.RadianToDegree(CStrawberry3D.Core.Mathf.PI));
 
         }
         [TestMethod]

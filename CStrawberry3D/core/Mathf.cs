@@ -1,44 +1,50 @@
 ﻿using OpenTK;
 using System;
-namespace CStrawberry3D.core
+namespace CStrawberry3D.Core
 {
     public class Mathf
     {
         public static float PI = 3.14159f;
-        public static float degreeToRadian(float degree)
+        public static Matrix4 TransformNormalMatrix(Matrix4 worldMatrix)
+        {
+            worldMatrix.Invert();
+            worldMatrix.Transpose();
+            return worldMatrix;
+        }
+        public static float DegreeToRadian(float degree)
         {
             float radian = (PI / 180) * degree;
             return radian;
         }
-        public static Vector3 degreeToRadian(Vector3 degree)
+        public static Vector3 DegreeToRadian(Vector3 degree)
         {
-            degree.X = degreeToRadian(degree.X);
-            degree.Y = degreeToRadian(degree.Y);
-            degree.Z = degreeToRadian(degree.Z);
+            degree.X = DegreeToRadian(degree.X);
+            degree.Y = DegreeToRadian(degree.Y);
+            degree.Z = DegreeToRadian(degree.Z);
             return degree;
         }
-        public static float radianToDegree(float radian)
+        public static float RadianToDegree(float radian)
         {
             float degree = (180 / PI) * radian;
             return degree;
         }
-        public static Vector3 radianToDegree(Vector3 radian)
+        public static Vector3 RadianToDegree(Vector3 radian)
         {
-            radian.X = radianToDegree(radian.X);
-            radian.Y = radianToDegree(radian.Y);
-            radian.Z = radianToDegree(radian.Z);
+            radian.X = RadianToDegree(radian.X);
+            radian.Y = RadianToDegree(radian.Y);
+            radian.Z = RadianToDegree(radian.Z);
             return radian;
         }
-        public static Quaternion eulerToQuaternion(Vector3 v)
+        public static Quaternion EulerToQuaternion(Vector3 v)
         {
-            return eulerToQuaternion(v.Y, v.X, v.Z);
+            return EulerToQuaternion(v.Y, v.X, v.Z);
         }
 
-        public static Quaternion eulerToQuaternion(float yaw, float pitch, float roll)
+        public static Quaternion EulerToQuaternion(float yaw, float pitch, float roll)
         {
-            yaw = Mathf.degreeToRadian(yaw);
-            pitch = Mathf.degreeToRadian(pitch);
-            roll = Mathf.degreeToRadian(roll);
+            yaw = Mathf.DegreeToRadian(yaw);
+            pitch = Mathf.DegreeToRadian(pitch);
+            roll = Mathf.DegreeToRadian(roll);
             float rollOver2 = roll * 0.5f;
             float sinRollOver2 = (float)Math.Sin((double)rollOver2);
             float cosRollOver2 = (float)Math.Cos((double)rollOver2);
@@ -57,7 +63,7 @@ namespace CStrawberry3D.core
             return result;
         }
 
-        public static Vector3 quaternionToEuler(Quaternion q1)
+        public static Vector3 QuaternionToEuler(Quaternion q1)
         {
             float sqw = q1.W * q1.W;
             float sqx = q1.X * q1.X;
@@ -72,23 +78,23 @@ namespace CStrawberry3D.core
                 v.Y = 2f * (float)Math.Atan2(q1.Y, q1.X);
                 v.X = Mathf.PI / 2;
                 v.Z = 0;
-                var result = new Vector3(Mathf.radianToDegree(v.X), Mathf.radianToDegree(v.Y), Mathf.radianToDegree(v.Z));
-                return degreeToRadian(NormalizeAngles(result));
+                var result = new Vector3(Mathf.RadianToDegree(v.X), Mathf.RadianToDegree(v.Y), Mathf.RadianToDegree(v.Z));
+                return DegreeToRadian(NormalizeAngles(result));
             }
             if (test < -0.4995f * unit)
             { // singularity at south pole
                 v.Y = -2f * (float)Math.Atan2(q1.Y, q1.X);
                 v.X = -Mathf.PI / 2;
                 v.Z = 0;
-                var result = new Vector3(Mathf.radianToDegree(v.X), Mathf.radianToDegree(v.Y), Mathf.radianToDegree(v.Z));
-                return degreeToRadian(NormalizeAngles(result));
+                var result = new Vector3(Mathf.RadianToDegree(v.X), Mathf.RadianToDegree(v.Y), Mathf.RadianToDegree(v.Z));
+                return DegreeToRadian(NormalizeAngles(result));
             }
             Quaternion q = new Quaternion(q1.W, q1.Z, q1.X, q1.Y);
             v.Y = (float)Math.Atan2(2f * q.X * q.W + 2f * q.Y * q.Z, 1 - 2f * (q.Z * q.Z + q.W * q.W));     // Yaw
             v.X = (float)Math.Asin(2f * (q.X * q.Z - q.W * q.Y));                             // Pitch
             v.Z = (float)Math.Atan2(2f * q.X * q.Y + 2f * q.Z * q.W, 1 - 2f * (q.Y * q.Y + q.Z * q.Z));      // Roll
-            var result2 = new Vector3(Mathf.radianToDegree(v.X), Mathf.radianToDegree(v.Y), Mathf.radianToDegree(v.Z));
-            return degreeToRadian(NormalizeAngles(result2));
+            var result2 = new Vector3(Mathf.RadianToDegree(v.X), Mathf.RadianToDegree(v.Y), Mathf.RadianToDegree(v.Z));
+            return DegreeToRadian(NormalizeAngles(result2));
         }
 
         static Vector3 NormalizeAngles(Vector3 angles)

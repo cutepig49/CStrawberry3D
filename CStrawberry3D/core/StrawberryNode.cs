@@ -1,265 +1,302 @@
-﻿using CStrawberry3D.component;
+﻿using System;
+using CStrawberry3D.Component;
 using OpenTK;
 using System.Collections.Generic;
 
-namespace CStrawberry3D.core
+namespace CStrawberry3D.Core
 {
     public class StrawberryNode
     {
         private static int _objectCount = 0;
-        private int _id = _objectCount++;
-        public int id
+        public int Id { get; private set; }
+        public string Guid { get; private set; }
+        public List<EmptyComponent> Components { get; private set; }
+        public StrawberryNode Parent { get; private set; }
+        public List<StrawberryNode> Children { get; private set; }
+        public Vector3 up;
+        public Vector3 translation;
+        public Vector3 Forward
         {
             get
             {
-                return _id;
+                UpdateWorldMatrix();
+                var tmp = matrixWorld.ExtractRotation();
+                var euler = Mathf.QuaternionToEuler(matrixWorld.ExtractRotation());
+                var z = Math.Cos(euler.Y) * Math.Cos(euler.X);
+                var x = Math.Sin(euler.Y) * Math.Cos(euler.X);
+                var y = -Math.Sin(euler.X);
+                var forward = new Vector3((float)x, (float)y, (float)z);
+                return forward;
             }
         }
-        private string _guid = System.Guid.NewGuid().ToString();
-        public string guid
+        public float X
         {
             get
             {
-                return _guid;
-            }
-        }
-        private List<Component> _components = new List<Component>();
-        public List<Component> components
-        {
-            get
-            {
-                return _components;
-            }
-        }
-        private StrawberryNode _parent = null;
-        private List<StrawberryNode> _children = new List<StrawberryNode>();
-        protected Vector3 _up = new Vector3();
-        protected Vector3 _translation = new Vector3();
-        public Vector3 forward
-        {
-            get
-            {
-                updateWorldMatrix();
-                var tmp = _matrixWorld.ExtractRotation();
-                var euler = Mathf.quaternionToEuler(tmp);
-                if (euler == Vector3.Zero)
-                    euler = Vector3.UnitZ;
-                return euler;
-            }
-        }
-        public Vector3 translation
-        {
-            get
-            {
-                return _translation;
+                return translation.X;
             }
             set
             {
-                _translation = value;
+                translation.X = value;
             }
         }
-        public float x
+        public float Y
         {
             get
             {
-                return _translation.X;
+                return translation.Y;
             }
             set
             {
-                _translation.X = value;
+                translation.Y = value;
             }
         }
-        public float y
+        public float Z
         {
             get
             {
-                return _translation.Y;
+                return translation.Z;
             }
             set
             {
-                _translation.Y = value;
+                translation.Z = value;
             }
         }
-        public float z
+        public Vector3 rotation;
+        public float Rx
         {
             get
             {
-                return _translation.Z;
+                return rotation.X;
             }
             set
             {
-                _translation.Z = value;
+                rotation.X = value;
             }
         }
-        protected Vector3 _rotation = new Vector3();
-        public Vector3 rotation
+        public float Ry
         {
             get
             {
-                return _rotation;
+                return rotation.Y;
             }
             set
             {
-                _rotation = value;
+                rotation.Y = value;
             }
         }
-        public float rx
+        public float Rz
         {
             get
             {
-                return _rotation.X;
+                return rotation.Z;
             }
             set
             {
-                _rotation.X = value;
+                rotation.Z = value;
             }
         }
-        public float ry
+        public Vector3 scaling;
+        public float Sx
         {
             get
             {
-                return _rotation.Y;
+                return scaling.X;
             }
             set
             {
-                _rotation.Y = value;
+                scaling.X = value;
             }
         }
-        public float rz
+        public float Sy
         {
             get
             {
-                return _rotation.Z;
+                return scaling.Y;
             }
             set
             {
-                _rotation.Z = value;
+                scaling.Y = value;
             }
         }
-        protected Vector3 _scale = new Vector3();
-        private Matrix4 _matrixLocal = new Matrix4();
-        private Matrix4 _matrixWorld = new Matrix4();
-        public Matrix4 matrixWorld
+        public float Sz
         {
             get
             {
-                return _matrixWorld;
+                return scaling.Z;
+            }
+            set
+            {
+                scaling.Z = value;
             }
         }
-        bool _matrixNeedUpdate = true;
-        public Dictionary<object, object> userData = new Dictionary<object, object>();
+        public Matrix4 matrixTranslation;
+        public Matrix4 matrixRotation;
+        public Matrix4 matrixScaling;
+        public Matrix4 matrixWorld;
+        public Matrix4 MatrixLocal
+        {
+            get
+            {
+                return matrixScaling * matrixRotation * matrixTranslation;
+            }
+        }
+        public bool matrixNeedUpdate;
+        public Dictionary<object, object> userData;
         public StrawberryNode()
         {
+            Id = ++_objectCount;
+            Guid = System.Guid.NewGuid().ToString();
+            up = new Vector3();
+            translation = new Vector3();
+            rotation = new Vector3();
+            scaling = new Vector3(1,1,1);
+            matrixTranslation = new Matrix4();
+            matrixRotation = new Matrix4();
+            matrixScaling = new Matrix4();
+            matrixWorld = new Matrix4();
+            Parent = null;
+            Children = new List<StrawberryNode>();
+            matrixNeedUpdate = true;
+            userData = new Dictionary<object, object>();
+            Components = new List<EmptyComponent>();
         }
-        public void translate(Vector3 value)
+        public void Translate(Vector3 value)
         {
-            _translation += value;
+            translation += value;
         }
-        public void translateX(float x)
+        public void TranslateX(float x)
         {
-            translate(new Vector3(x, 0, 0));
+            Translate(new Vector3(x, 0, 0));
         }
-        public void translateY(float y)
+        public void TranslateY(float y)
         {
-            translate(new Vector3(0, y, 0));
+            Translate(new Vector3(0, y, 0));
         }
-        public void translateZ(float z)
+        public void TranslateZ(float z)
         {
-            translate(new Vector3(0,0,z));
+            Translate(new Vector3(0,0,z));
         }
-        public void rotate(Vector3 value)
+        public void Rotate(Vector3 value)
         {
-            _rotation += value;
+            rotation += value;
         }
-        public void rotateX(float x)
+        public void RotateX(float x)
         {
-            rotate(new Vector3(x, 0, 0));
+            Rotate(new Vector3(x, 0, 0));
         }
-        public void rotateY(float y)
+        public void RotateY(float y)
         {
-            rotate(new Vector3(0, y, 0));
+            Rotate(new Vector3(0, y, 0));
         }
-        public void rotateZ(float z)
+        public void RotateZ(float z)
         {
-            rotate(new Vector3(0, 0, z));
+            Rotate(new Vector3(0, 0, z));
         }
-        public void lookAt(Vector3 target, Vector3 up)
+        public void Scale(Vector3 value)
         {
-            //TODO
+            scaling += value;
         }
-        private void _updateLocalMatrix()
+        public void ScaleX(float x)
         {
-            _matrixLocal = Matrix4.CreateTranslation(_translation);
-            _matrixLocal *= Matrix4.CreateRotationX(_rotation.X);
-            _matrixLocal *= Matrix4.CreateRotationY(_rotation.Y);
-            _matrixLocal *= Matrix4.CreateRotationZ(_rotation.Z);
+            Scale(new Vector3(x, 0, 0));
         }
-        public void updateWorldMatrix()
+        public void ScaleY(float y)
         {
-            if (!_matrixNeedUpdate)
+            Scale(new Vector3(0, y, 0));
+        }
+        public void ScaleZ(float z)
+        {
+            Scale(new Vector3(0, 0, z));
+        }
+        public void UpdateLocalMatrix()
+        {
+            matrixTranslation = Matrix4.CreateTranslation(translation);
+            matrixRotation = Matrix4.CreateRotationX(rotation.X) * Matrix4.CreateRotationY(rotation.Y) * Matrix4.CreateRotationZ(rotation.Z);
+            matrixScaling = Matrix4.CreateScale(scaling);
+        }
+        public void UpdateWorldMatrix()
+        {
+            if (!matrixNeedUpdate)
                 return;
-            _updateLocalMatrix();
-            if (_parent != null)
+            UpdateLocalMatrix();
+            if (Parent != null)
             {
-                _parent.updateWorldMatrix();
-                _matrixWorld = _parent._matrixWorld * _matrixLocal;
+                Parent.UpdateWorldMatrix();
+                matrixWorld =  MatrixLocal * Parent.matrixWorld;
             }
             else
-            {
-                _matrixWorld = _matrixLocal;
-            }
+                matrixWorld = MatrixLocal;
             //TODO
             //_matrixNeedUpdate = false;
         }
-        public void addComponent(component.Component component)
+        public void AddComponent<T>(T component)where T : EmptyComponent
         {
-            if (!_components.Contains(component))
+            if (!Components.Contains(component))
             {
-                _components.Add(component);
-                component.node = this;
+                Components.Add(component);
+                component.Node = this;
             }
         }
-        public void addChild(StrawberryNode child)
+        public void RemoveComponent<T>(T component)where T:EmptyComponent
         {
-            if (!_children.Contains(child))
+            Components.Remove(component);
+        }
+        public void AddChild(StrawberryNode child)
+        {
+            if (!Children.Contains(child))
             {
-                _children.Add(child);
-                child._parent = this;
+                Children.Add(child);
+                child.Parent = this;
             }
         }
-        public void removeChild(StrawberryNode child)
+        public void RemoveChild(StrawberryNode child)
         {
-            if (_children.Contains(child))
-                _children.Remove(child);
+            if (Children.Contains(child))
+            {
+                Children.Remove(child);
+                child.Parent = null;
+            }
         }
-        public StrawberryNode createChild()
+        public StrawberryNode CreateChild()
         {
             var child = new StrawberryNode();
-            addChild(child);
+            AddChild(child);
             return child;
         }
-        public Component[] getComponent(string componentName)
+        public T GetComponent<T>() where T : EmptyComponent
         {
-            List<Component> components = new List<Component>();
-            foreach (var component in _components)
+
+            foreach (var component in Components)
             {
-                if (component.name == componentName)
-                    components.Add(component);
+                if (component.GetType() == typeof(T))
+                    return (T)component;
             }
-            return components.ToArray();
+
+            return null;
         }
-        public List<StrawberryNode> getAll()
+        public T[] getComponents<T>() where T : EmptyComponent
+        {
+            List<T> returnComponents = new List<T>();
+            foreach (var component in Components)
+            {
+                if (component.GetType() == typeof(T))
+                    returnComponents.Add((T)component);
+            }
+            return returnComponents.ToArray();
+        }
+        public List<StrawberryNode> GetAll()
         {
             List<StrawberryNode> list = new List<StrawberryNode>();
-            _addSelfAndChildren(ref list);
+            _AddSelfAndChildren(ref list);
             return list;
         }
-        private void _addSelfAndChildren(ref List<StrawberryNode> list)
+        private void _AddSelfAndChildren(ref List<StrawberryNode> list)
         {
             list.Add(this);
-            foreach(var node in _children)
+            foreach(var node in Children)
             {
-                node._addSelfAndChildren(ref list);
+                node._AddSelfAndChildren(ref list);
             }
         }
     }

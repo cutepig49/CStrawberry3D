@@ -32,3 +32,4 @@ count.bat
 /packages
 
 /.nuget
+/CStrawberry3D/*.nvuser

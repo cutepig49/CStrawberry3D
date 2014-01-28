@@ -1,6 +1,8 @@
-attribute vec3 aVertexPosition;
-attribute vec3 aVertexNormal;
-attribute vec2 aTextureCoord;
+#version 130
+
+in vec3 aVertexPosition;
+in vec3 aVertexNormal;
+in vec2 aTextureCoord;
 
 uniform mat4 uVMatrix;
 uniform mat4 uMVMatrix;
@@ -13,8 +15,8 @@ uniform vec3 uDirections[8];
 uniform vec4 uDirectionalLights[8];
 uniform int uNumDirections;
 
-varying vec2 vTextureCoord;
-varying vec3 vLightWeighting;
+out vec2 vTextureCoord;
+out vec3 vLightWeighting;
 
 void main(void) 
 {
