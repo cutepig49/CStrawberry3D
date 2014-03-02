@@ -7,5 +7,10 @@ namespace CStrawberry3D.TK
 {
     public class TKAsset
     {
+        public string Guid { get; private set; }
+        protected TKAsset()
+        {
+            Guid = System.Guid.NewGuid().ToString();
+        }
     }
 }

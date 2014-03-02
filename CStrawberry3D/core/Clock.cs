@@ -8,11 +8,14 @@ namespace CStrawberry3D.Core
 {
     public class Clock:IDisposable
     {
-        //TODO
+        public static Clock Create()
+        {
+            return new Clock();
+        }
         public float Delta { get; private set; }
         public int Limit { get; private set; }
         Stopwatch _watch;
-        public Clock()
+        Clock()
         {
             Delta = 0;
             Limit = 60;
@@ -28,7 +31,14 @@ namespace CStrawberry3D.Core
         }
         public void Tick()
         {
-            Delta = _watch.ElapsedMilliseconds * 0.001f;
+            while (true)
+            {
+                Delta = _watch.ElapsedMilliseconds * 0.001f;
+                if (Delta > 1.0f / Limit)
+                {
+                    break;
+                }
+            }
             _watch.Restart();
         }
         public void Dispose()

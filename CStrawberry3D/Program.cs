@@ -6,6 +6,7 @@ using System;
 using CStrawberry3D.TK;
 using CStrawberry3D.Interface;
 
+
 namespace CStrawberry3D
 {
     static class Program
@@ -13,7 +14,6 @@ namespace CStrawberry3D
         /// <summary>
         /// 应用程序的主入口点。
         /// </summary>
-
 
         [STAThread]
         static void Main()
@@ -28,7 +28,6 @@ namespace CStrawberry3D
             node.AddComponent(new MeshComponent(mesh));
 
             renderer.Scene.Camera.Z = 10;
-            //renderer.Scene.AmbientLight = new Vector4();
 
             var d = renderer.Scene.AddDirectionalLight();
             d.Ry = Mathf.DegreeToRadian(90);
@@ -38,9 +37,10 @@ namespace CStrawberry3D
 
             renderer.UpdateFrame = Update;
 
-            renderer.Device.ClearColor = new Vector4();
-
             renderer.Run();
+        }
+        static void LoadAsset()
+        {
         }
         static void Update(TKRenderer renderer, float dt)
         {
@@ -52,14 +52,14 @@ namespace CStrawberry3D
             {
                 renderer.Scene.Root.GetAll()[1].TranslateY(-dt);
             }
-            //if (Input.KeyDown(Key.Left))
-            //{
-            //    Scene.Root.GetAll()[1].ScaleX(Clock.Delta);
-            //}
-            //if (Input.KeyDown(Key.Right))
-            //{
-            //    Scene.Root.GetAll()[1].ScaleX(-Clock.Delta);
-            //}
+            if (renderer.Input.KeyDown(Key.Left))
+            {
+                renderer.Scene.Root.GetAll()[1].ScaleX(dt);
+            }
+            if (renderer.Input.KeyDown(Key.Right))
+            {
+               renderer.Scene.Root.GetAll()[1].ScaleX(-dt);
+            }
             if (renderer.Input.KeyDown(Key.PageDown))
             {
                 renderer.Scene.Root.GetAll()[1].TranslateZ(dt);

@@ -5,6 +5,7 @@ using System.Text;
 using Assimp;
 using FreeImageAPI;
 using OpenTK.Graphics.OpenGL;
+using System.Xml;
 
 namespace CStrawberry3D.TK
 {
@@ -12,9 +13,14 @@ namespace CStrawberry3D.TK
     {
         public static readonly List<string> MESH_TYPE = new List<string> { ".x", ".nff", ".obj", ".3ds"};
         public static readonly List<string> IMAGE_TYPE = new List<string> { ".jpg", ".bmp", ".png", ".dds" };
+        public static readonly List<string> SKYBOX_TYPE = new List<string> { ".skybox" };
+        public static TKLoader Create()
+        {
+            return new TKLoader();
+        }
         AssimpImporter _importer;
         Dictionary<string, TKAsset> _assets;
-        public TKLoader()
+        TKLoader()
         {
             _importer = new AssimpImporter();
             _assets = new Dictionary<string,TKAsset>();
@@ -35,6 +41,10 @@ namespace CStrawberry3D.TK
         {
             return (TKTexture)GetAsset(assetName);
         }
+        public TKSkyBox GetSkyBox(string assetName)
+        {
+            return (TKSkyBox)GetAsset(assetName);
+        }
         public string ParseType(string filePath)
         {
             return filePath.Substring(filePath.LastIndexOf(".")).ToLower();
@@ -49,126 +59,143 @@ namespace CStrawberry3D.TK
             {
                 _LoadMesh(filePath);
             }
+            else if (IMAGE_TYPE.Contains(fileType))
+            {
+                _LoadTexture(filePath);
+            }
+            else if (SKYBOX_TYPE.Contains(fileType))
+            {
+                _LoadSkyBox(filePath);
+            }
             else
             {
                 return false;
             }
             return true;
         }
+        bool _LoadSkyBox(string filePath)
+        {
+            var xml = new XmlDocument();
+            xml.Load(filePath);
+            var skyboxes = xml.SelectNodes("/skybox");
+            return true;
+        }
         bool _LoadMesh(string filePath)
         {
-            var scene = _importer.ImportFile(filePath, PostProcessSteps.Triangulate | PostProcessSteps.GenerateSmoothNormals);
-            if (scene == null)
-                return false;
-            var mesh = new TKMesh();
-            for (int i = 0; i < scene.MaterialCount; i++)
+            var mesh = TKMesh.CreateFromFile(_importer, filePath);
+            if (mesh != null)
             {
-                var currMaterial = scene.Materials[i];
-                TKMaterial material;
-                if (currMaterial.GetTextureCount(TextureType.Diffuse) > 0) 
-                {
-                    var texPath = currMaterial.GetTextures(TextureType.Diffuse)[0].FilePath;
-                    _LoadTexture(texPath);
-                }
-                switch (currMaterial.ShadingMode)
-                {
-                    case ShadingMode.Phong:
-                        if (currMaterial.GetTextureCount(TextureType.Diffuse) > 0)
-                            material = new TexturedMaterial(GetTexture(currMaterial.GetTexture(TextureType.Diffuse, 0).FilePath));
-                        else
-                            material = new GlobalColorMaterial(new OpenTK.Vector4(1, 0, 1, 1));
-                    break;
-                    //break;
-                    case ShadingMode.Gouraud:
-                    default:
-                        material = new GlobalColorMaterial(new OpenTK.Vector4(1, 0, 1, 1));
-                        break;
-                }
-                mesh.AddMaterial(material);
+                _assets[filePath] = mesh;
+                return true;
             }
-            for (int i = 0; i < scene.MeshCount; i++)
-            {
-                Mesh tmp = scene.Meshes[i];
-                var positionArray = _Vector3DToFloat(tmp.Vertices);
-                var normalArray = _Vector3DToFloat(tmp.Normals);
-                var texCoordArray = _Vector3DToCoord(tmp.GetTextureCoords(0));
-                var indexArray = tmp.GetShortIndices();
-                var colorArray = _Color4DToFloat(tmp.GetVertexColors(0));
-                mesh.AddEntry(positionArray, indexArray, tmp.MaterialIndex, texCoordArray, normalArray, colorArray);
-            }
-            _assets[filePath] = mesh;
-            return true;
+            return false;
+
+            //var scene = _importer.ImportFile(filePath, PostProcessSteps.Triangulate | PostProcessSteps.GenerateSmoothNormals);
+            //if (scene == null)
+            //    return false;
+            //var mesh = new TKMesh();
+            //for (int i = 0; i < scene.MaterialCount; i++)
+            //{
+            //    var currMaterial = scene.Materials[i];
+            //    TKMaterial material;
+            //    if (currMaterial.GetTextureCount(TextureType.Diffuse) > 0) 
+            //    {
+            //        var texPath = currMaterial.GetTextures(TextureType.Diffuse)[0].FilePath;
+            //        _LoadTexture(texPath);
+            //    }
+            //    switch (currMaterial.ShadingMode)
+            //    {
+            //        case ShadingMode.Phong:
+            //            if (currMaterial.GetTextureCount(TextureType.Diffuse) > 0)
+            //                material = new TexturedMaterial(GetTexture(currMaterial.GetTexture(TextureType.Diffuse, 0).FilePath));
+            //            else
+            //                material = new GlobalColorMaterial(new OpenTK.Vector4(1, 0, 1, 1));
+            //        break;
+            //        //break;
+            //        case ShadingMode.Gouraud:
+            //        default:
+            //            material = new GlobalColorMaterial(new OpenTK.Vector4(1, 0, 1, 1));
+            //            break;
+            //    }
+            //    mesh.AddMaterial(material);
+            //}
+            //for (int i = 0; i < scene.MeshCount; i++)
+            //{
+            //    Mesh tmp = scene.Meshes[i];
+            //    var positionArray = _Vector3DToFloat(tmp.Vertices);
+            //    var normalArray = _Vector3DToFloat(tmp.Normals);
+            //    var texCoordArray = _Vector3DToCoord(tmp.GetTextureCoords(0));
+            //    var indexArray = tmp.GetShortIndices();
+            //    var colorArray = _Color4DToFloat(tmp.GetVertexColors(0));
+            //    mesh.AddEntry(positionArray, indexArray, tmp.MaterialIndex, texCoordArray, normalArray, colorArray);
+            //}
+            //_assets[filePath] = mesh;
+            //return true;
         }
         bool _LoadTexture(string filePath)
         {
-            var texture = new TKTexture();
-            FREE_IMAGE_FORMAT fif = FreeImage.GetFIFFromFilename(filePath);
-            if (!FreeImage.FIFSupportsReading(fif))
+            var texture = TKTexture.CreateFromFile(filePath);
+            if (texture == null)
+            {
                 return false;
-            var dib = FreeImage.Load(fif, filePath, FREE_IMAGE_LOAD_FLAGS.DEFAULT);
-            dib = FreeImage.ConvertTo32Bits(dib);
-            var bits = FreeImage.GetBits(dib);
-            var width = (int)FreeImage.GetWidth(dib);
-            var height = (int)FreeImage.GetHeight(dib);
-            texture.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, bits, true);
+            }
             _assets[filePath] = texture;
-            texture.SaveToPng("debug\\tiger.png");
             return true;
         }
-        float[] _Vector3DToCoord(Vector3D[] vertices)
-        {
-            if (vertices == null)
-                return null;
+        //float[] _Vector3DToCoord(Vector3D[] vertices)
+        //{
+        //    if (vertices == null)
+        //        return null;
 
-            List<float> newVertices = new List<float>();
-            foreach (var vertex in vertices)
-            {
-                newVertices.Add(vertex.X);
-                newVertices.Add(vertex.Y);
-            }
-            return newVertices.ToArray();
-        }
-        float[] _Vector3DToFloat(Vector3D[] vertices)
-        {
-            if (vertices == null)
-                return null;
+        //    List<float> newVertices = new List<float>();
+        //    foreach (var vertex in vertices)
+        //    {
+        //        newVertices.Add(vertex.X);
+        //        newVertices.Add(vertex.Y);
+        //    }
+        //    return newVertices.ToArray();
+        //}
+        //float[] _Vector3DToFloat(Vector3D[] vertices)
+        //{
+        //    if (vertices == null)
+        //        return null;
 
-            List<float> newVertices = new List<float>();
-            foreach (var vertex in vertices)
-            {
-                newVertices.Add(vertex.X);
-                newVertices.Add(vertex.Y);
-                newVertices.Add(vertex.Z);
-            }
-            return newVertices.ToArray();
-        }
-        float[] _Volor4DToFloat(Color4D[] vertices)
-        {
-            if (vertices == null)
-                return null;
-            List<float> newVertices = new List<float>();
-            foreach (var vertex in vertices)
-            {
-                newVertices.Add(vertex.R);
-                newVertices.Add(vertex.G);
-                newVertices.Add(vertex.B);
-                newVertices.Add(vertex.A);
-            }
-            return newVertices.ToArray();
-        }
-        float[] _Color4DToFloat(Assimp.Color4D[] vertices)
-        {
-            if (vertices == null)
-                return null;
-            List<float> newVertices = new List<float>();
-            foreach (var vertex in vertices)
-            {
-                newVertices.Add(vertex.R);
-                newVertices.Add(vertex.G);
-                newVertices.Add(vertex.B);
-                newVertices.Add(vertex.A);
-            }
-            return newVertices.ToArray();
-        }
+        //    List<float> newVertices = new List<float>();
+        //    foreach (var vertex in vertices)
+        //    {
+        //        newVertices.Add(vertex.X);
+        //        newVertices.Add(vertex.Y);
+        //        newVertices.Add(vertex.Z);
+        //    }
+        //    return newVertices.ToArray();
+        //}
+        //float[] _Volor4DToFloat(Color4D[] vertices)
+        //{
+        //    if (vertices == null)
+        //        return null;
+        //    List<float> newVertices = new List<float>();
+        //    foreach (var vertex in vertices)
+        //    {
+        //        newVertices.Add(vertex.R);
+        //        newVertices.Add(vertex.G);
+        //        newVertices.Add(vertex.B);
+        //        newVertices.Add(vertex.A);
+        //    }
+        //    return newVertices.ToArray();
+        //}
+        //float[] _Color4DToFloat(Assimp.Color4D[] vertices)
+        //{
+        //    if (vertices == null)
+        //        return null;
+        //    List<float> newVertices = new List<float>();
+        //    foreach (var vertex in vertices)
+        //    {
+        //        newVertices.Add(vertex.R);
+        //        newVertices.Add(vertex.G);
+        //        newVertices.Add(vertex.B);
+        //        newVertices.Add(vertex.A);
+        //    }
+        //    return newVertices.ToArray();
+        //}
     }
 }

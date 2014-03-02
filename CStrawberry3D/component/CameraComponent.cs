@@ -2,18 +2,12 @@
 using CStrawberry3D.TK;
 namespace CStrawberry3D.Component
 {
-    public struct SkyBox
+    public class CameraComponent:IComponent
     {
-        TKTexture PositiveX { get; set; }
-        TKTexture NegativeX { get; set; }
-        TKTexture PositiveY { get; set; }
-        TKTexture NegativeY { get; set; }
-        TKTexture PositiveZ { get; set; }
-        TKTexture NegativeZ { get; set; }
-    }
-    public class CameraComponent:EmptyComponent
-    {
-        public SkyBox SkyBox { get; private set; }
+        public static CameraComponent Create()
+        {
+            return new CameraComponent();
+        }
         public Matrix4 ViewMatrix
         {
             get
@@ -27,14 +21,6 @@ namespace CStrawberry3D.Component
         public CameraComponent():base()
         {
             Name = CAMERA_COMPONENT;
-        }
-        public void SetSkybox(SkyBox skyBox)
-        {
-            SkyBox = skyBox;
-        }
-        public void DisableSkybox()
-        {
-
         }
     }
 }

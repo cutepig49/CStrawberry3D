@@ -2,7 +2,7 @@
 
 namespace CStrawberry3D.Component
 {
-    public class EmptyComponent
+    public class IComponent
     {
         public const string EMPTY_COMPONENT = "EmptyComponent";
         public const string MESH_COMPONENT = "MeshComponent";
@@ -13,7 +13,7 @@ namespace CStrawberry3D.Component
         public string Name { get; protected set; }
         public bool Actice { get; set; }
         public StrawberryNode Node { get; set; }
-        public EmptyComponent()
+        protected IComponent()
         {
             Guid = System.Guid.NewGuid().ToString();
             Name = EMPTY_COMPONENT;

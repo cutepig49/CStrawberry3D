@@ -8,10 +8,14 @@ namespace CStrawberry3D.TK
 {
     public class TKVertexBuffer : IDisposable
     {
+        public static TKVertexBuffer Create(int bufferObject, int itemSize, int numItems)
+        {
+            return new TKVertexBuffer(bufferObject, itemSize, numItems);
+        }
         public int BufferObject { get; private set; }
         public int ItemSize { get; private set; }
         public int NumItems { get; private set; }
-        public TKVertexBuffer(int bufferObject, int itemSize, int numItems)
+        TKVertexBuffer(int bufferObject, int itemSize, int numItems)
         {
             BufferObject = bufferObject;
             ItemSize = itemSize;

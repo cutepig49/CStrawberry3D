@@ -8,14 +8,19 @@ using OpenTK;
 
 namespace CStrawberry3D.TK
 {
-    public class TKProgram:IDisposable
+    public class TKProgram : IDisposable
     {
-        public Dictionary<UniformIdentifer, int> UniformIdentifers{get;private set;}
+        public static TKProgram Create(string vertexShaderFileName, string fragmentShaderFileName)
+        {
+            return new TKProgram(vertexShaderFileName, fragmentShaderFileName);
+        }
+        public Dictionary<UniformIdentifer, int> UniformIdentifers { get; private set; }
         public Dictionary<AttributeIdentifer, int> AttributeIdentifers { get; private set; }
         public int ProgramObject { get; private set; }
         public TKShader VertexShader { get; private set; }
         public TKShader FragmentShader { get; private set; }
-        public TKProgram(string vertexShaderPath, string fragmentShaderPath)
+
+        public TKProgram(string vertexShaderFileName, string fragmentShaderFileName)
         {
             UniformIdentifers = new Dictionary<UniformIdentifer, int>();
             AttributeIdentifers = new Dictionary<AttributeIdentifer, int>();
@@ -27,14 +32,8 @@ namespace CStrawberry3D.TK
             {
                 AttributeIdentifers.Add(identifer, -1);
             }
-            var fileReader = new StreamReader(vertexShaderPath);
-            var vertexScript = fileReader.ReadToEnd();
-            fileReader.Close();
-            fileReader = new StreamReader(fragmentShaderPath);
-            var fragmentScript = fileReader.ReadToEnd();
-            fileReader.Close();
-            VertexShader = new TKShader(vertexScript, ShaderType.VertexShader);
-            FragmentShader = new TKShader(fragmentScript, ShaderType.FragmentShader);
+            VertexShader = TKShader.CreateFromFile(vertexShaderFileName, ShaderType.VertexShader);
+            FragmentShader = TKShader.CreateFromFile(fragmentShaderFileName, ShaderType.FragmentShader);
             ProgramObject = GL.CreateProgram();
             GL.AttachShader(ProgramObject, VertexShader.ShaderObject);
             GL.AttachShader(ProgramObject, FragmentShader.ShaderObject);
@@ -233,5 +232,4 @@ namespace CStrawberry3D.TK
             FragmentShader.Dispose();
         }
     }
-
 }

@@ -17,9 +17,15 @@ namespace CStrawberry3D.Platform
         [DllImport("Kernel32.dll")]
         static extern bool FreeConsole();
 
+        public static Logger Create()
+        {
+            return new Logger();
+        }
+
         public string LogFile { get; private set; }
         public bool PendingOnError { get; set; }
         bool _showConsole;
+
         public bool ShowConsole
         {
             get
@@ -43,7 +49,7 @@ namespace CStrawberry3D.Platform
                 _showConsole = value;
             }
         }
-        public Logger()
+        Logger()
         {
             PendingOnError = true;
             ShowConsole = true;

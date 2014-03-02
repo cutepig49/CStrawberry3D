@@ -5,18 +5,22 @@ namespace CStrawberry3D.Core
 {
     public class Scene
     {
+        public static Scene Create()
+        {
+            return new Scene();
+        }
         public StrawberryNode Root { get; private set; }
         public StrawberryNode Camera { get; private set; }
         public Vector4 AmbientLight { get; set; }
-        public Scene()
+        Scene()
         {
-            Root = new StrawberryNode();
+            Root = StrawberryNode.Create();
             Camera = CreateCamera();
             AmbientLight = new Vector4(0.6f, 0.6f, 0.6f, 1);
         }
         public StrawberryNode CreateCamera()
         {
-            var camera = new StrawberryNode();
+            var camera = StrawberryNode.Create();
             camera.AddComponent(new CameraComponent());
             return camera;
         }

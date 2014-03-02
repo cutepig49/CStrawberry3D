@@ -14,18 +14,21 @@ namespace CStrawberry3D.TK
 {
 
     public delegate void UpdateFrame(TKRenderer renderer, float dt);
+    public struct DrawDescription
+    {
+        public Matrix4 WorldMatrix { get; set; }
+        public TKMaterial Material { get; set; }
+        public TKMesh Mesh { get; set; }
+    }
     public class TKRenderer
     {
-        static TKRenderer _singleton;
-        public static TKRenderer Singleton
+        public static TKRenderer Singleton { get; private set; }
+        public static TKRenderer Create(string title, int width, int height)
         {
-            get
-            {
-                if (_singleton == null)
-                    _singleton = new TKRenderer();
-                return _singleton;
-            }
+            Singleton = new TKRenderer(title, width, height);
+            return Singleton;
         }
+
         public UpdateFrame UpdateFrame;
         public GameWindow Form { get; private set; }
         public Scene Scene { get; private set; }
@@ -56,7 +59,7 @@ namespace CStrawberry3D.TK
                 return Form.ClientSize.Height;
             }
         }
-        TKRenderer() { }
+        TKRenderer(string title, int width, int height) { }
         public void ShaderChanged(string filePath)
         {
             _needRecompile = true;
@@ -72,14 +75,14 @@ namespace CStrawberry3D.TK
         {
             Form = new GameWindow(width, height, GraphicsMode.Default, title);
             Form.WindowBorder = WindowBorder.Fixed;
-            Scene = new Scene();
-            Clock = new Clock();
-            Logger = new Logger();
+            Scene = Scene.Create();
+            Clock = Clock.Create();
+            Logger = Logger.Create();
             RenderState = new TKRenderState();
-            Loader = new TKLoader();
+            Loader = TKLoader.Create();
             ShaderManager = new TKShaderManager();
             Input = new TKInput();
-            Device = new TKDevice();
+            Device = TKDevice.Create();
             GBuffer = new TKGBuffer();
 
             _LoadScrrenQuad();
@@ -136,31 +139,31 @@ namespace CStrawberry3D.TK
         }
         void _RenderFrame(object sender, FrameEventArgs e)
         {
-            if (_needRecompile)
-                RecompileShader();
+            //if (_needRecompile)
+            //    RecompileShader();
 
-            var nodes = Scene.Root.GetAll();
-            _UpdateRenderState(nodes);
+            //var nodes = Scene.Root.GetAll();
+            //_UpdateRenderState(nodes);
 
 
-            Device.Clear();
-            GBuffer.Apply();
+            //Device.Clear();
+            //GBuffer.Apply();
 
-            foreach (var node in nodes)
-            {
-                node.UpdateWorldMatrix();
-                var mesh = node.GetComponent<MeshComponent>();
-                if (mesh != null)
-                    mesh.Draw(false);
-            }
+            //foreach (var node in nodes)
+            //{
+            //    node.UpdateWorldMatrix();
+            //    var mesh = node.GetComponent<MeshComponent>();
+            //    if (mesh != null)
+            //        mesh.Draw(false);
+            //}
 
-            GBuffer.Clear();
+            //GBuffer.Clear();
 
-            screenQuad.Draw(false, Matrix4.CreateTranslation(0, 0, 0));
+            //screenQuad.Draw(false, Matrix4.CreateTranslation(0, 0, 0));
 
-            Device.GetError();
+            //Device.GetError();
 
-            Form.SwapBuffers();
+            //Form.SwapBuffers();
         }
     }
 }

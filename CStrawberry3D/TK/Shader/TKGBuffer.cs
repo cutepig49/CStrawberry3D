@@ -22,7 +22,10 @@ namespace CStrawberry3D.TK
         {
             Textures = new List<TKTexture>();
             for (int i = 0; i < Enum.GetNames(typeof(GBufferTextureType)).Length; i++)
+            {
+
                 Textures.Add(new TKTexture());
+            }
 
             FrameBufferObject = GL.GenFramebuffer();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FrameBufferObject);

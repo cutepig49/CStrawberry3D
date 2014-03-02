@@ -7,11 +7,16 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform.Windows;
 using CStrawberry3D.Core;
+using CStrawberry3D.Platform;
 
 namespace CStrawberry3D.TK
 {
     public class TKDevice
     {
+        public static TKDevice Create()
+        {
+            return new TKDevice();
+        }
         Vector4 _clearColor;
         public Vector4 ClearColor
         {
@@ -32,7 +37,7 @@ namespace CStrawberry3D.TK
                 return GL.GetString(StringName.Renderer);
             }
         }
-        public TKDevice()
+        TKDevice()
         {
             GL.Enable(EnableCap.Multisample);
             GL.Enable(EnableCap.DepthTest);
@@ -44,12 +49,12 @@ namespace CStrawberry3D.TK
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
-        public void GetError()
+        public void GetError(Logger logger)
         {
             var error = GL.GetError();
             if (error != ErrorCode.NoError)
             {
-                TKRenderer.Singleton.Logger.Error(error.ToString());
+                logger.Error(error.ToString());
             }
         }
     }

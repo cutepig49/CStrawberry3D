@@ -7,21 +7,34 @@ namespace CStrawberry3D.Core
 {
     public class StrawberryNode
     {
-        private static int _objectCount = 0;
-        public int Id { get; private set; }
+        static int _objectCount = 0;
+        public static StrawberryNode Create()
+        {
+            return new StrawberryNode();
+        }
+        public static StrawberryNode Create(float x, float y, float z)
+        {
+            var node = new StrawberryNode();
+            node.X = x;
+            node.Y = y;
+            node.Z = z;
+            return node;
+        }
+        public static StrawberryNode Create(Vector3 translation)
+        {
+            return Create(translation.X, translation.Y, translation.Z);
+        }
+        public int ID { get; private set; }
         public string Guid { get; private set; }
-        public List<EmptyComponent> Components { get; private set; }
+        public List<IComponent> Components { get; private set; }
         public StrawberryNode Parent { get; private set; }
         public List<StrawberryNode> Children { get; private set; }
-        public Vector3 up;
         public Vector3 translation;
         public Vector3 Forward
         {
             get
             {
-                UpdateWorldMatrix();
-                var tmp = matrixWorld.ExtractRotation();
-                var euler = Mathf.QuaternionToEuler(matrixWorld.ExtractRotation());
+                var euler = Mathf.QuaternionToEuler(WorldMatrix.ExtractRotation());
                 var z = Math.Cos(euler.Y) * Math.Cos(euler.X);
                 var x = Math.Sin(euler.Y) * Math.Cos(euler.X);
                 var y = -Math.Sin(euler.X);
@@ -130,36 +143,67 @@ namespace CStrawberry3D.Core
                 scaling.Z = value;
             }
         }
-        public Matrix4 matrixTranslation;
-        public Matrix4 matrixRotation;
-        public Matrix4 matrixScaling;
-        public Matrix4 matrixWorld;
-        public Matrix4 MatrixLocal
+        public Matrix4 TranslationMatrix
         {
             get
             {
-                return matrixScaling * matrixRotation * matrixTranslation;
+                return Matrix4.Translation(translation);
+            }
+        }
+        public Matrix4 RotationMatrix
+        {
+            get
+            {
+                return Matrix4.CreateRotationX(rotation.X) * Matrix4.CreateRotationY(rotation.Y) * Matrix4.CreateRotationZ(rotation.Z);
+            }
+        }
+        public Matrix4 ScalingMatrix
+        {
+            get
+            {
+                return Matrix4.CreateScale(scaling);
+            }
+        }
+        public Matrix4 LocalMatrix
+        {
+            get
+            {
+                return ScalingMatrix * RotationMatrix * TranslationMatrix;
+            }
+        }
+        Matrix4 _worldMatrix;
+        public Matrix4 WorldMatrix
+        {
+            get
+            {
+                if (matrixNeedUpdate)
+                {
+                    if (Parent != null)
+                    {
+                        _worldMatrix = LocalMatrix * Parent.WorldMatrix;
+                    }
+                    else
+                    {
+                        _worldMatrix = LocalMatrix;
+                    }
+                }
+                return _worldMatrix;
             }
         }
         public bool matrixNeedUpdate;
         public Dictionary<object, object> userData;
-        public StrawberryNode()
+        StrawberryNode()
         {
-            Id = ++_objectCount;
+            ID = ++_objectCount;
             Guid = System.Guid.NewGuid().ToString();
-            up = new Vector3();
             translation = new Vector3();
             rotation = new Vector3();
             scaling = new Vector3(1,1,1);
-            matrixTranslation = new Matrix4();
-            matrixRotation = new Matrix4();
-            matrixScaling = new Matrix4();
-            matrixWorld = new Matrix4();
             Parent = null;
             Children = new List<StrawberryNode>();
             matrixNeedUpdate = true;
             userData = new Dictionary<object, object>();
-            Components = new List<EmptyComponent>();
+            Components = new List<IComponent>();
         }
         public void Translate(Vector3 value)
         {
@@ -209,28 +253,7 @@ namespace CStrawberry3D.Core
         {
             Scale(new Vector3(0, 0, z));
         }
-        public void UpdateLocalMatrix()
-        {
-            matrixTranslation = Matrix4.CreateTranslation(translation);
-            matrixRotation = Matrix4.CreateRotationX(rotation.X) * Matrix4.CreateRotationY(rotation.Y) * Matrix4.CreateRotationZ(rotation.Z);
-            matrixScaling = Matrix4.CreateScale(scaling);
-        }
-        public void UpdateWorldMatrix()
-        {
-            if (!matrixNeedUpdate)
-                return;
-            UpdateLocalMatrix();
-            if (Parent != null)
-            {
-                Parent.UpdateWorldMatrix();
-                matrixWorld =  MatrixLocal * Parent.matrixWorld;
-            }
-            else
-                matrixWorld = MatrixLocal;
-            //TODO
-            //_matrixNeedUpdate = false;
-        }
-        public void AddComponent<T>(T component)where T : EmptyComponent
+        public void AddComponent<T>(T component)where T : IComponent
         {
             if (!Components.Contains(component))
             {
@@ -238,7 +261,7 @@ namespace CStrawberry3D.Core
                 component.Node = this;
             }
         }
-        public void RemoveComponent<T>(T component)where T:EmptyComponent
+        public void RemoveComponent<T>(T component)where T:IComponent
         {
             Components.Remove(component);
         }
@@ -264,7 +287,7 @@ namespace CStrawberry3D.Core
             AddChild(child);
             return child;
         }
-        public T GetComponent<T>() where T : EmptyComponent
+        public T GetComponent<T>() where T : IComponent
         {
 
             foreach (var component in Components)
@@ -275,7 +298,7 @@ namespace CStrawberry3D.Core
 
             return null;
         }
-        public T[] getComponents<T>() where T : EmptyComponent
+        public T[] getComponents<T>() where T : IComponent
         {
             List<T> returnComponents = new List<T>();
             foreach (var component in Components)

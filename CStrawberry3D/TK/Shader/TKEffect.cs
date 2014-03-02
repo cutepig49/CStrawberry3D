@@ -7,6 +7,10 @@ namespace CStrawberry3D.TK
 {
     public class TKEffect : IDisposable
     {
+        public static TKEffect Create(TKProgram[] programs)
+        {
+            return new TKEffect(programs);
+        }
         public int NumPasses
         {
             get
@@ -19,7 +23,7 @@ namespace CStrawberry3D.TK
         public Dictionary<AttributeIdentifer, object> AttributeValues { get; set; }
         public Dictionary<UniformIdentifer, object> UniformValues { get; set; }
 
-        public TKEffect(TKProgram[] programs)
+        TKEffect(TKProgram[] programs)
         {
             _currIndex = -1;
             Programs = new List<TKProgram>(programs);

@@ -1,0 +1,17 @@
+﻿<Material> 
+  <MaterialName>GlobalColor</MaterialName>
+  <Transprent>False</Transprent>
+  <Shader>
+    <VertexShader>
+      <FileName>../../Shaders/GlobalColorVertexShader.glsl</FileName>
+    </VertexShader>
+    <FragmentShader>
+      <FileName>../../Shaders/GlobalColorFragmentShader.glsl</FileName>
+      <Properties>
+        <Vector4>
+          <uGlobalColor>255,255,255,255</uGlobalColor>
+        </Vector4>
+      </Properties>
+    </FragmentShader>
+  </Shader>  
+</Material>

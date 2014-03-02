@@ -2,7 +2,7 @@
 
 namespace CStrawberry3D.Component
 {
-   public class DirectionalLightComponent:EmptyComponent
+   public class DirectionalLightComponent:IComponent
     {
        public Vector4 DiffuseColor { get; set; }
        public Vector4 SpecularColor { get; set; }

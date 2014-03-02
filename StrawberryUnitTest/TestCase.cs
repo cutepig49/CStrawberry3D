@@ -30,8 +30,8 @@ namespace StrawberryUnitTest
         [TestMethod]
         public void TestComponentGuid()
         {
-            EmptyComponent component1 = new EmptyComponent();
-            EmptyComponent component2 = new EmptyComponent();
+            IComponent component1 = new IComponent();
+            IComponent component2 = new IComponent();
 
             Assert.AreEqual(false, component1.guid == component2.guid);
         }
@@ -56,7 +56,7 @@ namespace StrawberryUnitTest
         [TestMethod]
         public void TestComponentName()
         {
-            var emptyComponent = new EmptyComponent();
+            var emptyComponent = new IComponent();
             var cameraComponent = new CameraComponent();
             var directionalLightComponent = new DirectionalLightComponent();
 

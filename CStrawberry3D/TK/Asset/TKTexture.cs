@@ -11,7 +11,23 @@ namespace CStrawberry3D.TK
 {
     public class TKTexture:TKAsset
     {
-        public bool IsAvailable
+        public static TKTexture CreateFromFile(string fileName)
+        {
+            var fif = FreeImage.GetFIFFromFilename(fileName);
+            if (!FreeImage.FIFSupportsReading(fif))
+            {
+                return null;
+            }
+            var dib = FreeImage.Load(fif, fileName, FREE_IMAGE_LOAD_FLAGS.DEFAULT);
+            dib = FreeImage.ConvertTo32Bits(dib);
+            var bits = FreeImage.GetBits(dib);
+            var width = (int)FreeImage.GetWidth(dib);
+            var height = (int)FreeImage.GetHeight(dib);
+            var texture = new TKTexture();
+            texture.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, bits, true);
+            return texture;
+        }
+        public static bool IsFreeImageAvailable
         {
             get
             {
@@ -24,8 +40,7 @@ namespace CStrawberry3D.TK
         public int TextureObject { get; private set; }
         public PixelFormat PixelFormat { get; private set; }
         public PixelType PixelType { get; private set; }
-        public TKTexture()
-            :base()
+        TKTexture():base()
         {
             TextureObject = GL.GenTexture();
             Width = 0;
