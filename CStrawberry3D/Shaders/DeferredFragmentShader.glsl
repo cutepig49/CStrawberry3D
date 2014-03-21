@@ -24,16 +24,29 @@ void main()
 	vec4 diffuse = texture2D(uDeferredDiffuse, vClipPosition);
 	vec3 normal = calcNormal();
 	vec4 position = texture2D(uDeferredPosition, vClipPosition);
-	
-	vec4 totalAmbient = diffuse * uAmbientLight;
-	vec4 totalDiffuse = vec4(0,0,0,1);
-	for (int i = 0; i < uNumDirections; i++)
+
+	int materialID = int((diffuse.w+0.01)*10);
+
+	switch(materialID)
 	{
-		vec3 direction = -normalize(uDirections[i]);
-		float lightWeight = max(dot(normal, direction), 0.0);
-		totalDiffuse += uDirectionalLights[i] * lightWeight * diffuse;
+	case 0:
+		gl_FragColor = diffuse;
+		break;
+	case 1:
+	case 2:
+		vec4 totalAmbient = diffuse * uAmbientLight;
+		vec4 totalDiffuse = vec4(0,0,0,1);
+		for (int i = 0; i < uNumDirections; i++)
+		{
+			vec3 direction = -normalize(uDirections[i]);
+			float lightWeight = max(dot(normal, direction), 0.0);
+			totalDiffuse += uDirectionalLights[i] * lightWeight * diffuse;
+		}
+		gl_FragColor = totalAmbient + totalDiffuse;
+		break;
 	}
-	gl_FragColor = totalAmbient + totalDiffuse;
+	//gl_FragColor=vec4(materialID, 0, 0, 1);
+	//gl_FragColor = vec4(normal, 1);
 	//gl_FragColor = vec4(position.z, 0, 0, 1);
 	//gl_FragColor = position;
 }

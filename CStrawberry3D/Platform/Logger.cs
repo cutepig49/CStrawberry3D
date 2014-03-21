@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CStrawberry3D.Platform
 {
-    public class Logger:IDisposable
+    public static class Logger
     {
         [DllImport("Kernel32.dll")]
         static extern IntPtr GetStdHandle(int nStdHandle);
@@ -17,16 +17,11 @@ namespace CStrawberry3D.Platform
         [DllImport("Kernel32.dll")]
         static extern bool FreeConsole();
 
-        public static Logger Create()
-        {
-            return new Logger();
-        }
+        public static string LogFile { get; set; }
+        public static bool PendingOnError { get; set; }
+        static bool _showConsole;
 
-        public string LogFile { get; private set; }
-        public bool PendingOnError { get; set; }
-        bool _showConsole;
-
-        public bool ShowConsole
+        public static bool ShowConsole
         {
             get
             {
@@ -49,13 +44,14 @@ namespace CStrawberry3D.Platform
                 _showConsole = value;
             }
         }
-        Logger()
+        static Logger()
         {
             PendingOnError = true;
             ShowConsole = true;
             LogFile = "log.txt";
+            WriteLog("<Application Start>" + DateTime.Now);
         }
-        public void WriteLog(string log)
+        public static void WriteLog(string log)
         {
             if (!string.IsNullOrEmpty(LogFile))
             {
@@ -64,23 +60,21 @@ namespace CStrawberry3D.Platform
                 fileWriter.Close();
             }
         }
-        public void Info(string info)
+        public static void Info(string info)
         {
             string log = string.Format("<info>{0}: {1}", DateTime.Now, info);
             WriteLog(log);
             Console.WriteLine(log);
         }
-        public void Error(string error)
+        public static void Error(string error)
         {
             string log = string.Format("<error>{0}: {1}", DateTime.Now, error);
             WriteLog(log);
             Console.WriteLine(log);
             if (PendingOnError)
+            {
                 MessageBox.Show(log, "error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-        public void Dispose()
-        {
-            WriteLog("<Application Exit>" + DateTime.Now);
+            }
         }
     }
 }

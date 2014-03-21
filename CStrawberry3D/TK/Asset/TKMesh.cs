@@ -17,7 +17,11 @@ namespace CStrawberry3D.TK
     }
     public class TKMeshEntry
     {
-        public static TKMeshEntry Create(Vector3D[] vertices, uint[] indices, Color4D[] vertexColors, Vector3D[] textureCoords, Vector3D[] normals, TKMeshDescription desc)
+        public static TKMeshEntry Create(Vector3[] vertices, uint[] indices, Vector4[] vertexColors, Vector3[] textureCoords, Vector3[] normals, TKMaterial material, TKMeshDescription desc)
+        {
+            return new TKMeshEntry(vertices, indices, vertexColors, textureCoords, normals, material, desc);
+        }
+        public static TKMeshEntry Create(Vector3D[] vertices, uint[] indices, Color4D[] vertexColors, Vector3D[] textureCoords, Vector3D[] normals, TKMaterial material, TKMeshDescription desc)
         {
             var _vertices = new List<Vector3>();
             var _vertexColors = new List<Vector4>();
@@ -25,33 +29,33 @@ namespace CStrawberry3D.TK
             var _textureCoords = new List<Vector3>();
             if (desc.HasVertices)
             {
-                foreach(var v in vertices)
+                foreach (var v in vertices)
                 {
                     _vertices.Add(new Vector3(v.X, v.Y, v.Z));
                 }
             }
             if (desc.HasNormals)
             {
-                foreach(var n in normals)
+                foreach (var n in normals)
                 {
                     _normals.Add(new Vector3(n.X, n.Y, n.Z));
                 }
             }
             if (desc.HasTextureCoords)
             {
-                foreach(var t in textureCoords)
+                foreach (var t in textureCoords)
                 {
                     _textureCoords.Add(new Vector3(t.X, t.Y, t.Z));
                 }
             }
             if (desc.HasVertexColors)
             {
-                foreach(var c in vertexColors)
+                foreach (var c in vertexColors)
                 {
-                   _vertexColors.Add(new Vector4(c.R, c.G, c.B, c.A));
+                    _vertexColors.Add(new Vector4(c.R, c.G, c.B, c.A));
                 }
             }
-            return new TKMeshEntry(_vertices.ToArray(), indices, _vertexColors.ToArray(), _normals.ToArray(), _textureCoords.ToArray(), desc);
+            return new TKMeshEntry(_vertices.ToArray(), indices, _vertexColors.ToArray(), _normals.ToArray(), _textureCoords.ToArray(), material, desc);
         }
         static float[] _Vector3ToFloatArray(Vector3[] vectors)
         {
@@ -87,7 +91,8 @@ namespace CStrawberry3D.TK
         public TKVertexBuffer TextureCoordBuffer { get; private set; }
         public TKVertexBuffer NormalBuffer { get; private set; }
         public TKVertexBuffer ColorBuffer { get; private set; }
-        TKMeshEntry(Vector3[] vertices, uint[] indices, Vector4[] vertexColors, Vector3[] normals, Vector3[] textureCoords, TKMeshDescription desc)
+        public TKMaterial Material { get; set; }
+        TKMeshEntry(Vector3[] vertices, uint[] indices, Vector4[] vertexColors, Vector3[] normals, Vector3[] textureCoords, TKMaterial material, TKMeshDescription desc)
         {
             Description = desc;
 
@@ -134,11 +139,13 @@ namespace CStrawberry3D.TK
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
                 ColorBuffer = TKVertexBuffer.Create(colorsBuffer, 4, colorsArray.Length / 4);
             }
+
+            Material = material;
         }
     }
-    public class TKMesh:TKAsset
+    public class TKMesh : TKAsset
     {
-        public static TKMesh CreateFromFile(AssimpImporter importer, string fileName)
+        public static TKMesh CreateFromFile(AssimpImporter importer, TKShaderManager shaderManager, string fileName)
         {
             var scene = importer.ImportFile(fileName, PostProcessSteps.Triangulate | PostProcessSteps.GenerateSmoothNormals);
             if (scene == null)
@@ -156,7 +163,17 @@ namespace CStrawberry3D.TK
                     HasVertexColors = tmp.HasVertexColors(0),
                     HasTextureCoords = tmp.HasTextureCoords(0)
                 };
-                entries.Add(TKMeshEntry.Create(tmp.Vertices, tmp.GetIndices(), tmp.GetVertexColors(0), tmp.GetTextureCoords(0), tmp.Normals, desc));
+                TKMaterial material = TKGlobalColorMaterial.Create(shaderManager, new Vector4(1,1,1,1));
+                var m = scene.Materials[tmp.MaterialIndex];
+                if (m.GetTextureCount(TextureType.Diffuse) > 0)
+                {
+                    var texture = TKTexture.CreateFromFile(m.GetTexture(TextureType.Diffuse, 0).FilePath);
+                    if (texture != null)
+                    {
+                        material = TKTexturedMaterial.Create(shaderManager, texture);
+                    }
+                }
+                entries.Add(TKMeshEntry.Create(tmp.Vertices, tmp.GetIndices(), tmp.GetVertexColors(0), tmp.GetTextureCoords(0), tmp.Normals, material, desc));
             }
             return TKMesh.Create(entries.ToArray());
         }
@@ -164,72 +181,17 @@ namespace CStrawberry3D.TK
         {
             return new TKMesh(entries);
         }
-        public List<TKMeshEntry> Entries { get; private set; }
+        public TKMeshEntry FirstEntry
+        {
+            get
+            {
+                return Entries[0];
+            }
+        }
+        public TKMeshEntry[] Entries { get; private set; }
         TKMesh(TKMeshEntry[] entries)
         {
-            Entries = new List<TKMeshEntry>(entries);
+            Entries = entries;
         }
-        //public void AddEntry(float[] positionArray, short[] indexArray, int materialIndex, float[] texCoordArray = null, float[] normalArray = null, float[] colorArray = null)
-        //{
-        //    var entry = new TKEntry();
-        //    entry.MaterialIndex = materialIndex;
-
-        //    var buffer = GL.GenBuffer();
-        //    GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-        //    GL.BufferData(BufferTarget.ArrayBuffer,(IntPtr)(positionArray.Length * sizeof(float)), positionArray, BufferUsageHint.StaticDraw);
-        //    entry.PositionBuffer = new TKVertexBuffer(buffer, 3, positionArray.Length / 3);
-
-        //    buffer = GL.GenBuffer();
-        //    GL.GenBuffer();
-        //    GL.BindBuffer(BufferTarget.ElementArrayBuffer, buffer);
-        //    GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indexArray.Length * sizeof(short)), indexArray, BufferUsageHint.StaticDraw);
-        //    entry.IndexBuffer = new TKVertexBuffer(buffer, 1, indexArray.Length);
-
-        //    if (texCoordArray != null)
-        //    {
-        //        buffer = GL.GenBuffer();
-        //        GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-        //        GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(texCoordArray.Length * sizeof(float)), texCoordArray, BufferUsageHint.StaticDraw);
-        //        entry.TexCoordBuffer = new TKVertexBuffer(buffer, 2, texCoordArray.Length / 2);
-        //    }
-        //    if (colorArray != null)
-        //    {
-        //        buffer = GL.GenBuffer();
-        //        GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-        //        GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(colorArray.Length * sizeof(float)), colorArray, BufferUsageHint.StaticDraw);
-        //        entry.ColorBuffer = new TKVertexBuffer(buffer, 4, colorArray.Length / 4);
-        //    }
-        //    if (normalArray != null)
-        //    {
-        //        buffer = GL.GenBuffer();
-        //        GL.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-        //        GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(normalArray.Length * sizeof(float)), normalArray, BufferUsageHint.StaticDraw);
-        //        entry.NormalBuffer = new TKVertexBuffer(buffer, 3, normalArray.Length / 3);
-        //    }
-        //    Entries.Add(entry);
-        //}
-        //public void AddMaterial(TKMaterial material)
-        //{
-        //    Materials.Add(material);
-        //}
-        //public void Draw(bool isTransparentPass, Matrix4 mvMatrix)
-        //{
-        //    foreach (var entry in Entries)
-        //    {
-        //        var material = Materials[entry.MaterialIndex];
-        //        if (material.IsTransprent != isTransparentPass)
-        //            continue;
-
-        //        for (int i = 0; i < material.Effect.NumPasses; i++)
-        //        {
-        //            material.Apply(i, entry, mvMatrix);
-
-        //            GL.BindBuffer(BufferTarget.ElementArrayBuffer, entry.IndexBuffer.BufferObject);
-        //            GL.DrawElements(PrimitiveType.Triangles, entry.IndexBuffer.NumItems, DrawElementsType.UnsignedShort, 0);
-
-        //            material.Clear();
-        //        }
-        //    }
-        //}
     }
 }

@@ -5,12 +5,38 @@ using System.Text;
 using OpenTK.Graphics.OpenGL;
 using System.IO;
 using System.Drawing;
+using CStrawberry3D.Platform;
 using FreeImageAPI;
 
 namespace CStrawberry3D.TK
 {
+    public struct TextureDescription
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public IntPtr Pixels { get; set; }
+    }
     public class TKTexture:TKAsset
     {
+        public static TextureDescription GetImageDescription(string fileName)
+        {
+            var fif = FreeImage.GetFIFFromFilename(fileName);
+            var dib = FreeImage.Load(fif, fileName, FREE_IMAGE_LOAD_FLAGS.DEFAULT);
+            dib = FreeImage.ConvertTo32Bits(dib);
+            return GetImageDescription(dib);
+        }
+        public static TextureDescription GetImageDescription(FIBITMAP dib)
+        {
+            var width = (int)FreeImage.GetWidth(dib);
+            var height = (int)FreeImage.GetHeight(dib);
+            var pixels = FreeImage.GetBits(dib);
+            return new TextureDescription
+            {
+                Width = width,
+                Height = height,
+                Pixels = pixels
+            };
+        }
         public static TKTexture CreateFromFile(string fileName)
         {
             var fif = FreeImage.GetFIFFromFilename(fileName);
@@ -19,13 +45,19 @@ namespace CStrawberry3D.TK
                 return null;
             }
             var dib = FreeImage.Load(fif, fileName, FREE_IMAGE_LOAD_FLAGS.DEFAULT);
+            if (dib.IsNull)
+            {
+                return null;
+            }
             dib = FreeImage.ConvertTo32Bits(dib);
-            var bits = FreeImage.GetBits(dib);
-            var width = (int)FreeImage.GetWidth(dib);
-            var height = (int)FreeImage.GetHeight(dib);
-            var texture = new TKTexture();
-            texture.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, width, height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, bits, true);
+            var desc = GetImageDescription(dib);
+            var texture = TKTexture.Create();
+            texture.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, desc.Width, desc.Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, desc.Pixels, true);
             return texture;
+        }
+        public static TKTexture Create()
+        {
+            return new TKTexture();
         }
         public static bool IsFreeImageAvailable
         {
@@ -40,6 +72,7 @@ namespace CStrawberry3D.TK
         public int TextureObject { get; private set; }
         public PixelFormat PixelFormat { get; private set; }
         public PixelType PixelType { get; private set; }
+        public PixelInternalFormat PixelInternalFormat { get; private set; }
         TKTexture():base()
         {
             TextureObject = GL.GenTexture();
@@ -55,6 +88,7 @@ namespace CStrawberry3D.TK
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
             GL.BindTexture(TextureTarget.Texture2D, 0);
+            PixelInternalFormat = internalFormat;
             Width = width;
             Height = height;
             PixelFormat = pixelFormat;
@@ -86,7 +120,11 @@ namespace CStrawberry3D.TK
                 case OpenTK.Graphics.OpenGL.PixelType.UnsignedInt:
                     size = sizeof(uint);
                     break;
+                case OpenTK.Graphics.OpenGL.PixelType.HalfFloat:
+                    size = (int)(sizeof(float) * 0.5f);
+                    break;
                 default:
+                    Logger.Error("Not supported texture format");
                     size = 1;
                     break;
             }

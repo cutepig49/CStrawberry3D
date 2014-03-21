@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using OpenTK.Graphics.OpenGL;
 using System.IO;
+using CStrawberry3D.Platform;
 
 namespace CStrawberry3D.TK
 {
@@ -36,7 +37,7 @@ namespace CStrawberry3D.TK
             GL.GetShader(ShaderObject, ShaderParameter.CompileStatus, out result);
             if (result != 1)
             {
-                TKRenderer.Singleton.Logger.Error(GL.GetShaderInfoLog(ShaderObject));
+                Logger.Error(GL.GetShaderInfoLog(ShaderObject));
             }
         }
         public void Dispose()

@@ -6,6 +6,7 @@ using Assimp;
 using FreeImageAPI;
 using OpenTK.Graphics.OpenGL;
 using System.Xml;
+using System.IO;
 
 namespace CStrawberry3D.TK
 {
@@ -14,16 +15,18 @@ namespace CStrawberry3D.TK
         public static readonly List<string> MESH_TYPE = new List<string> { ".x", ".nff", ".obj", ".3ds"};
         public static readonly List<string> IMAGE_TYPE = new List<string> { ".jpg", ".bmp", ".png", ".dds" };
         public static readonly List<string> SKYBOX_TYPE = new List<string> { ".skybox" };
-        public static TKLoader Create()
+        public static TKLoader Create(TKShaderManager shaderManager)
         {
-            return new TKLoader();
+            return new TKLoader(shaderManager);
         }
         AssimpImporter _importer;
         Dictionary<string, TKAsset> _assets;
-        TKLoader()
+        TKShaderManager _shaderManager;
+        TKLoader(TKShaderManager shaderManager)
         {
             _importer = new AssimpImporter();
             _assets = new Dictionary<string,TKAsset>();
+            _shaderManager = shaderManager;
         }
         public bool HasAsset(string assetName)
         {
@@ -41,9 +44,9 @@ namespace CStrawberry3D.TK
         {
             return (TKTexture)GetAsset(assetName);
         }
-        public TKSkyBox GetSkyBox(string assetName)
+        public TKCubeMap GetSkyBox(string assetName)
         {
-            return (TKSkyBox)GetAsset(assetName);
+            return (TKCubeMap)GetAsset(assetName);
         }
         public string ParseType(string filePath)
         {
@@ -52,7 +55,13 @@ namespace CStrawberry3D.TK
         public bool LoadAsset(string filePath)
         {
             if (_assets.ContainsKey(filePath))
+            {
                 return false;
+            }
+            if (!File.Exists(filePath))
+            {
+                return false;
+            }
 
             var fileType = ParseType(filePath);
             if (MESH_TYPE.Contains(fileType) && _importer.IsImportFormatSupported(fileType))
@@ -75,14 +84,20 @@ namespace CStrawberry3D.TK
         }
         bool _LoadSkyBox(string filePath)
         {
-            var xml = new XmlDocument();
-            xml.Load(filePath);
-            var skyboxes = xml.SelectNodes("/skybox");
-            return true;
+            var skybox = TKCubeMap.CreateFromFile(filePath);
+            if (skybox != null)
+            {
+                _assets[filePath] = skybox;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         bool _LoadMesh(string filePath)
         {
-            var mesh = TKMesh.CreateFromFile(_importer, filePath);
+            var mesh = TKMesh.CreateFromFile(_importer, _shaderManager, filePath);
             if (mesh != null)
             {
                 _assets[filePath] = mesh;

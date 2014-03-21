@@ -40,6 +40,8 @@ namespace CStrawberry3D.TK
             var keyState = Keyboard.GetState();
             switch(key)
             {
+                case Interface.Key.Escape:
+                    return keyState[Key.Escape];
                 case Interface.Key.Down:
                     return keyState[Key.Down];
                 case Interface.Key.Up:
@@ -54,6 +56,10 @@ namespace CStrawberry3D.TK
                     return keyState[Key.PageUp];
                 case Interface.Key.Space:
                     return keyState[Key.Space];
+                case Interface.Key.W:
+                    return keyState[Key.W];
+                case Interface.Key.S:
+                    return keyState[Key.S];
                 default:
                     return false;
             }

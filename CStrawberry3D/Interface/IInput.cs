@@ -7,13 +7,18 @@ namespace CStrawberry3D.Interface
 {
     public enum Key
     {
+        Escape,
         Up,
         Left,
         Right,
         Down,
         PageDown,
         PageUp,
-        Space
+        Space,
+        W,
+        A,
+        S,
+        D
     }
     interface IInput
     {

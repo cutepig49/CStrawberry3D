@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using OpenTK.Graphics.OpenGL;
 using OpenTK;
+using CStrawberry3D.Platform;
 
 namespace CStrawberry3D.TK
 {
@@ -20,7 +21,7 @@ namespace CStrawberry3D.TK
         public TKShader VertexShader { get; private set; }
         public TKShader FragmentShader { get; private set; }
 
-        public TKProgram(string vertexShaderFileName, string fragmentShaderFileName)
+        TKProgram(string vertexShaderFileName, string fragmentShaderFileName)
         {
             UniformIdentifers = new Dictionary<UniformIdentifer, int>();
             AttributeIdentifers = new Dictionary<AttributeIdentifer, int>();
@@ -44,7 +45,7 @@ namespace CStrawberry3D.TK
             if (result != 1)
             {
 
-                TKRenderer.Singleton.Logger.Error("Could not initialise shaders.");
+                Logger.Error("Could not initialise shaders.");
                 return;
             }
 
@@ -56,7 +57,7 @@ namespace CStrawberry3D.TK
             GL.UseProgram(ProgramObject);
             foreach (var key in AttributeIdentifers.Keys)
             {
-                if (AttributeIdentifers[key] != -1)
+                if (AttributeIdentifers[key] != -1 && attributeValues[key] != null)
                 {
                     TKVertexBuffer buffer;
                     switch (key)
@@ -85,8 +86,8 @@ namespace CStrawberry3D.TK
                             GL.BindBuffer(BufferTarget.ArrayBuffer, buffer.BufferObject);
                             GL.VertexAttribPointer(AttributeIdentifers[key], buffer.ItemSize, VertexAttribPointerType.Float, false, 0, 0);
                             break;
-                        default:
-                            TKRenderer.Singleton.Logger.Error(string.Format("Identifer '{0}' doesn't have a value!", Enum.GetName(typeof(AttributeIdentifer), key)));
+                         default:
+                            Logger.Error(string.Format("Identifer '{0}' doesn't have a value!", Enum.GetName(typeof(AttributeIdentifer), key)));
                             break;
                     }
                 }
@@ -107,6 +108,9 @@ namespace CStrawberry3D.TK
                             GL.Uniform1(UniformIdentifers[key], (int)uniformValues[key]);
                             break;
                         case UniformIdentifer.uDiffuseIndex:
+                            GL.Uniform1(UniformIdentifers[key], (int)uniformValues[key]);
+                            break;
+                        case UniformIdentifer.uDepthIndex:
                             GL.Uniform1(UniformIdentifers[key], (int)uniformValues[key]);
                             break;
                         case UniformIdentifer.uGlobalColor:
@@ -193,8 +197,32 @@ namespace CStrawberry3D.TK
                             GL.BindTexture(TextureTarget.Texture2D, (int)uniformValues[key]);
                             GL.Uniform1(UniformIdentifers[key], 0);
                             break;
+                        case UniformIdentifer.uCubeSamplers:
+                            var cubeSamplers = (int[])uniformValues[key];
+                            ints = new List<int>();
+                            for (int i = 0; i < cubeSamplers.Length; i++)
+                            {
+                                GL.BindTexture(TextureTarget.TextureCubeMap, cubeSamplers[i]);
+                                ints.Add(i);
+                            }
+                            GL.Uniform1(UniformIdentifers[key], cubeSamplers.Length, ints.ToArray());
+                            break;
+                        case UniformIdentifer.uMaterialID:
+                            var materialID = (int)uniformValues[key];
+                            GL.Uniform1(UniformIdentifers[key], materialID);
+                            break;
+                        case UniformIdentifer.uSamplerRects:
+                            var samplerRects = (Vector2[])uniformValues[key];
+                            floats = new List<float>();
+                            foreach (var r in samplerRects)
+                            {
+                                floats.Add(r.X);
+                                floats.Add(r.Y);
+                            }
+                            GL.Uniform2(UniformIdentifers[key], floats.Count / 2, floats.ToArray());
+                            break;
                         default:
-                            TKRenderer.Singleton.Logger.Error(string.Format("Identifer '{0}' doesn't have a value!", Enum.GetName(typeof(UniformIdentifer), key)));
+                            Logger.Error(string.Format("Identifer '{0}' doesn't have a value!", Enum.GetName(typeof(UniformIdentifer), key)));
                             break;
                     }
                 }

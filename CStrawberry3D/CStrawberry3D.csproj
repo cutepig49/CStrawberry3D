@@ -12,6 +12,21 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <PublishUrl>发布\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -46,9 +61,6 @@
     <Reference Include="FreeImageNET">
       <HintPath>..\..\..\..\FreeImage\FreeImageNET.dll</HintPath>
     </Reference>
-    <Reference Include="LitJSON">
-      <HintPath>..\..\..\..\LitJson\LitJSON.dll</HintPath>
-    </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\OpenTK\1.1\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
@@ -69,6 +81,7 @@
     <Compile Include="Component\IComponent.cs" />
     <Compile Include="Component\DirectionalLightComponent.cs" />
     <Compile Include="Component\MeshComponent.cs" />
+    <Compile Include="Component\TerrainComponent.cs" />
     <Compile Include="Core\Clock.cs" />
     <Compile Include="Core\Mathf.cs" />
     <Compile Include="Core\StrawberryNode.cs" />
@@ -77,10 +90,25 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TK\Asset\TKLoader.cs" />
-    <Compile Include="TK\Asset\TKSkyBox.cs" />
+    <Compile Include="TK\Asset\TKCubeMap.cs" />
     <Compile Include="TK\Asset\TKTexture.cs" />
-    <Compile Include="TK\Shader\TKGBuffer.cs" />
+    <Compile Include="TK\Material\TKBasicColorMaterial.cs" />
+    <Compile Include="TK\Material\TKDeferredMaterial.cs" />
+    <Compile Include="TK\Material\TKGlobalColorMaterial.cs" />
+    <Compile Include="TK\Material\TKScreenMaterial.cs" />
+    <Compile Include="TK\Material\TKSkyboxMaterial.cs" />
+    <Compile Include="TK\Material\TKTexturedMaterial.cs" />
+    <Compile Include="TK\Material\TKTexturedPhongMaterial.cs" />
+    <Compile Include="TK\PostProcess\TKGreyPostProcess.cs" />
+    <Compile Include="TK\PostProcess\TKHDRPostProcess.cs" />
+    <Compile Include="TK\PostProcess\TKMotionBlurPostProcess.cs" />
+    <Compile Include="TK\PostProcess\TKNegativePostProcess.cs" />
+    <Compile Include="TK\PostProcess\TKPostProcess.cs" />
+    <Compile Include="TK\PostProcess\TKPostProcessManager.cs" />
+    <Compile Include="TK\PostProcess\TKReliefPostProcess.cs" />
+    <Compile Include="TK\TKGBuffer.cs" />
     <Compile Include="TK\TKInput.cs" />
+    <Compile Include="TK\TKLightingBuffer.cs" />
     <Compile Include="TK\TKRenderState.cs" />
     <Compile Include="Core\Scene.cs" />
     <Compile Include="TK\Asset\TKAsset.cs" />
@@ -93,6 +121,7 @@
     <Compile Include="TK\Shader\TKShaderManager.cs" />
     <Compile Include="TK\TKDevice.cs" />
     <Compile Include="TK\TKRenderer.cs" />
+    <Compile Include="TK\TKSound.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -117,16 +146,28 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="Shaders\BasicColorFragmentShader.glsl" />
-    <None Include="Shaders\BasicColorVertexShader.glsl" />
-    <None Include="Shaders\DeferredFragmentShader.glsl" />
-    <None Include="Shaders\DeferredVertexShader.glsl" />
-    <None Include="Shaders\GlobalColorFragmentShader.glsl" />
-    <None Include="Shaders\GlobalColorVertexShader.glsl" />
-    <None Include="Shaders\TexturedFragmentShader.glsl" />
-    <None Include="Shaders\TexturedPhongFragmentShader.glsl" />
-    <None Include="Shaders\TexturedPhongVertexShader.glsl" />
-    <None Include="Shaders\TexturedVertexShader.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 和 x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.4.5">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 4.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

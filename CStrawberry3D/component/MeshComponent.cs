@@ -8,18 +8,27 @@ namespace CStrawberry3D.Component
 {
     public class MeshComponent : IComponent
     {
-        public static MeshComponent Create(TKMesh mesh, TKMaterial material)
+        public static MeshComponent Create(TKMesh mesh)
         {
-            return new MeshComponent(mesh, material);
+            return new MeshComponent(mesh);
         }
         public TKMesh Mesh { get; private set; }
-        public TKMaterial Material { get; private set; }
-        public MeshComponent(TKMesh mesh, TKMaterial material)
+        public DrawDescription DrawDesc
+        {
+            get
+            {
+                return new DrawDescription
+                {
+                    Entries = Mesh.Entries,
+                    WorldMatrix = Node.WorldMatrix
+                };
+            }
+        }
+        public MeshComponent(TKMesh mesh)
             : base()
         {
             Name = MESH_COMPONENT;
             Mesh = mesh;
-            Material = material;
         }
     }
 }

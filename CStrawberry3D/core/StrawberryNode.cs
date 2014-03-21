@@ -24,22 +24,51 @@ namespace CStrawberry3D.Core
         {
             return Create(translation.X, translation.Y, translation.Z);
         }
+        public Vector3 OriginalUnitX { get; set; }
+        public Vector3 OriginalUnitZ { get; set; }
+        public Vector3 OriginalUnitY { get; set; }
         public int ID { get; private set; }
         public string Guid { get; private set; }
         public List<IComponent> Components { get; private set; }
         public StrawberryNode Parent { get; private set; }
         public List<StrawberryNode> Children { get; private set; }
         public Vector3 translation;
+        public CameraComponent CameraComponent
+        {
+            get
+            {
+                return GetComponent<CameraComponent>();
+            }
+        }
+        public Quaternion RotationQuaternion
+        {
+            get
+            {
+                return WorldMatrix.ExtractRotation();
+            }
+        }
         public Vector3 Forward
         {
             get
             {
-                var euler = Mathf.QuaternionToEuler(WorldMatrix.ExtractRotation());
-                var z = Math.Cos(euler.Y) * Math.Cos(euler.X);
-                var x = Math.Sin(euler.Y) * Math.Cos(euler.X);
-                var y = -Math.Sin(euler.X);
-                var forward = new Vector3((float)x, (float)y, (float)z);
-                return forward;
+                var forward = Mathf.QuaternionMultiplyVector3(RotationQuaternion, OriginalUnitZ);
+                return forward.Normalized();
+            }
+        }
+        public Vector3 Up
+        {
+            get
+            {
+                var up = Mathf.QuaternionMultiplyVector3(RotationQuaternion, OriginalUnitY);
+                return up.Normalized();
+            }
+        }
+        public Vector3 Right
+        {
+            get
+            {
+                var right = Mathf.QuaternionMultiplyVector3(RotationQuaternion, OriginalUnitX);
+                return right.Normalized();
             }
         }
         public float X
@@ -147,14 +176,14 @@ namespace CStrawberry3D.Core
         {
             get
             {
-                return Matrix4.Translation(translation);
+                return Matrix4.CreateTranslation(translation);
             }
         }
         public Matrix4 RotationMatrix
         {
             get
             {
-                return Matrix4.CreateRotationX(rotation.X) * Matrix4.CreateRotationY(rotation.Y) * Matrix4.CreateRotationZ(rotation.Z);
+                return Matrix4.CreateRotationX(rotation.X) * Matrix4.CreateRotationZ(rotation.Z) * Matrix4.CreateRotationY(rotation.Y);
             }
         }
         public Matrix4 ScalingMatrix
@@ -192,7 +221,7 @@ namespace CStrawberry3D.Core
         }
         public bool matrixNeedUpdate;
         public Dictionary<object, object> userData;
-        StrawberryNode()
+        protected StrawberryNode()
         {
             ID = ++_objectCount;
             Guid = System.Guid.NewGuid().ToString();
@@ -204,22 +233,25 @@ namespace CStrawberry3D.Core
             matrixNeedUpdate = true;
             userData = new Dictionary<object, object>();
             Components = new List<IComponent>();
+            OriginalUnitX = Vector3.UnitX;
+            OriginalUnitY = Vector3.UnitY;
+            OriginalUnitZ = Vector3.UnitZ;
         }
-        public void Translate(Vector3 value)
+        public void Move(Vector3 value)
         {
             translation += value;
         }
-        public void TranslateX(float x)
+        public void MoveX(float x)
         {
-            Translate(new Vector3(x, 0, 0));
+            Move(new Vector3(x, 0, 0));
         }
-        public void TranslateY(float y)
+        public void MoveY(float y)
         {
-            Translate(new Vector3(0, y, 0));
+            Move(new Vector3(0, y, 0));
         }
-        public void TranslateZ(float z)
+        public void MoveZ(float z)
         {
-            Translate(new Vector3(0,0,z));
+            Move(new Vector3(0,0,z));
         }
         public void Rotate(Vector3 value)
         {
@@ -253,6 +285,11 @@ namespace CStrawberry3D.Core
         {
             Scale(new Vector3(0, 0, z));
         }
+        public void Pitch(float radian)
+        {
+            var quat = Quaternion.FromAxisAngle(Right, radian) * RotationMatrix.ExtractRotation();
+            rotation = Mathf.QuaternionToEuler(quat);
+        }
         public void AddComponent<T>(T component)where T : IComponent
         {
             if (!Components.Contains(component))
@@ -281,6 +318,10 @@ namespace CStrawberry3D.Core
                 child.Parent = null;
             }
         }
+        public void RemoveAllChildren()
+        {
+            Children.Clear();
+        }
         public StrawberryNode CreateChild()
         {
             var child = new StrawberryNode();
@@ -298,7 +339,7 @@ namespace CStrawberry3D.Core
 
             return null;
         }
-        public T[] getComponents<T>() where T : IComponent
+        public T[] GetComponents<T>() where T : IComponent
         {
             List<T> returnComponents = new List<T>();
             foreach (var component in Components)

@@ -8,6 +8,7 @@ namespace CStrawberry3D.Component
         public const string MESH_COMPONENT = "MeshComponent";
         public const string DIRECTIONAL_LIGHT_COMPONENT = "DirectionalLightComponent";
         public const string CAMERA_COMPONENT = "CameraComponent";
+        public const string TERRAIN_COMPONENT = "TerrainComponent";
 
         public string Guid { get; protected set; }
         public string Name { get; protected set; }

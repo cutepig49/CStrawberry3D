@@ -43,9 +43,9 @@ namespace StrawberryUnitTest
             var child = parent.CreateChild();
             var grandchild = child.CreateChild();
 
-            parent.TranslateX(10);
-            child.TranslateY(5);
-            grandchild.TranslateZ(-10);
+            parent.MoveX(10);
+            child.MoveY(5);
+            grandchild.MoveZ(-10);
 
             grandchild.UpdateWorldMatrix();
 

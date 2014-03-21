@@ -4,6 +4,7 @@ in vec3 vWorldPosition;
 in vec3 vNormal;
 
 uniform vec4 uGlobalColor;
+uniform int uMaterialID;
 uniform int uPositionIndex;
 uniform int uDiffuseIndex;
 uniform int uNormalIndex;
@@ -17,6 +18,6 @@ vec4 calcNormal()
 
 void main(void) {
 	gl_FragData[uPositionIndex] = vec4(vWorldPosition, 1.0);
-	gl_FragData[uDiffuseIndex] = uGlobalColor;
+	gl_FragData[uDiffuseIndex] = vec4(uGlobalColor.xyz, uMaterialID*0.1);
 	gl_FragData[uNormalIndex] = calcNormal();
 }

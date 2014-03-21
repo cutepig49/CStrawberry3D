@@ -42,19 +42,21 @@ namespace CStrawberry3D.TK
             GL.Enable(EnableCap.Multisample);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.Texture2D);
-            GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+            //GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
             ClearColor = new Vector4(0, 0, 0, 1);
         }
-        public void Clear()
+        public void Clear(ClearBufferMask mask= ClearBufferMask.ColorBufferBit|ClearBufferMask.DepthBufferBit)
         {
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GL.Clear(mask);
         }
-        public void GetError(Logger logger)
+        public void GetError()
         {
             var error = GL.GetError();
             if (error != ErrorCode.NoError)
             {
-                logger.Error(error.ToString());
+                Logger.Error(error.ToString());
             }
         }
     }

@@ -32,10 +32,15 @@ namespace CStrawberry3D.TK
         uPositionIndex,
         uDiffuseIndex,
         uNormalIndex,
+        uDepthIndex,
         uDeferredPosition,
         uDeferredDiffuse,
         uDeferredNormal,
-        uClearColor
+        uDeferredDepth,
+        uClearColor,
+        uCubeSamplers,
+        uMaterialID,
+        uSamplerRects
     }
     public enum AttributeIdentifer
     {
@@ -47,7 +52,8 @@ namespace CStrawberry3D.TK
 
     public class TKShaderManager
     {
-        public const string shaderDir = @"..\..\..\Shaders\";
+        public const string shaderDir = @"../../Shaders/";
+        //public const string shaderDir = @"Shaders/";
         public const string globalColorVertexShaderPath = shaderDir + "GlobalColorVertexShader.glsl";
         public const string globalColorFragmentShaderPath = shaderDir + "GlobalColorFragmentShader.glsl";
         public const string basicColorVertexShaderPath = shaderDir + "BasicColorVertexShader.glsl";
@@ -58,7 +64,15 @@ namespace CStrawberry3D.TK
         public const string texturedPhongFragmentShaderPath = shaderDir + "TexturedPhongFragmentShader.glsl";
         public const string deferredVertexShaderPath = shaderDir + "DeferredVertexShader.glsl";
         public const string deferredFragmentShaderPath = shaderDir + "DeferredFragmentShader.glsl";
-
+        public const string skyboxVertexShaderPath = shaderDir + "SkyboxVertexShader.glsl";
+        public const string skyboxFragmentShaderPath = shaderDir + "SkyboxFragmentShader.glsl";
+        public const string screenVertexShaderPath = shaderDir + "ScreenVertexShader.glsl";
+        public const string screenFragmentShaderPath = shaderDir + "ScreenFragmentShader.glsl";
+        public const string greyPostProcessFragmentShaderPath = shaderDir + "GreyPostProcessFragmentShader.glsl";
+        public const string negativePostProcessFragmentShaderPath = shaderDir + "NegativePostProcessFragmentShader.glsl";
+        public const string reliefPostProcessFragmentShaderPath = shaderDir + "ReliefPostProcessFragmentShader.glsl";
+        public const string scaleCopyPostProcessFragmentShader = shaderDir + "ScaleCopyPostProcessFragmentShader.glsl";
+        public const string motionBlurPostProcessFragmentShader = shaderDir + "MotionBlurPostProcessFragmentShader.glsl";
 
         //public readonly static Shader GlobalColorVertexShader;
         //public readonly static Shader GlobalColorFragmentShader;
@@ -77,7 +91,12 @@ namespace CStrawberry3D.TK
         public TKEffect TexturedEffect{get;private set;}
         public TKEffect TexturedPhongEffect{get;private set;}
         public TKEffect DeferredEffect { get; private set; }
-
+        public TKEffect SkyboxEffect { get; private set; }
+        public TKEffect ScreenEffect { get; private set; }
+        public TKEffect GreyPostProcessEffect { get; private set; }
+        public TKEffect NegativePostProcessEffect { get; private set; }
+        public TKEffect ReliefPostProcessEffect { get; private set; }
+        public TKEffect MotionBlurPostProcessEffect { get; private set; }
         static FileSystemWatcher _fileWatcher;
         public TKShaderManager()
         {
@@ -92,24 +111,49 @@ namespace CStrawberry3D.TK
             TexturedEffect.Dispose();
             TexturedPhongEffect.Dispose();
             DeferredEffect.Dispose();
+            SkyboxEffect.Dispose();
+            ScreenEffect.Dispose();
+            GreyPostProcessEffect.Dispose();
+            NegativePostProcessEffect.Dispose();
+            //ReliefPostProcessEffect.Dispose();
+            MotionBlurPostProcessEffect.Dispose();
             CompileAllShader();
         }
         public void CompileAllShader()
         {
-            GlobalColorProgram = new TKProgram(globalColorVertexShaderPath, globalColorFragmentShaderPath);
-            GlobalColorEffect = new TKEffect(new TKProgram[] { GlobalColorProgram });
+            GlobalColorProgram = TKProgram.Create(globalColorVertexShaderPath, globalColorFragmentShaderPath);
+         
+            GlobalColorEffect = TKEffect.Create(new TKProgram[] { GlobalColorProgram });
 
-            BasicColorProgram = new TKProgram(basicColorVertexShaderPath, basicColorFragmentShaderPath);
-            BasicColorEffect = new TKEffect(new TKProgram[] { BasicColorProgram });
+            BasicColorProgram = TKProgram.Create(basicColorVertexShaderPath, basicColorFragmentShaderPath);
+            BasicColorEffect = TKEffect.Create(new TKProgram[] { BasicColorProgram });
 
-            TexturedProgram = new TKProgram(texturedVertexShaderPath, texturedFragmentShaderPath);
-            TexturedEffect = new TKEffect(new TKProgram[] { TexturedProgram });
+            TexturedProgram = TKProgram.Create(texturedVertexShaderPath, texturedFragmentShaderPath);
+            TexturedEffect = TKEffect.Create(new TKProgram[] { TexturedProgram });
 
-            TexturedPhongProgram = new TKProgram(texturedPhongVertexShaderPath, texturedPhongFragmentShaderPath);
-            TexturedPhongEffect = new TKEffect(new TKProgram[] { TexturedPhongProgram });
+            TexturedPhongProgram = TKProgram.Create(texturedPhongVertexShaderPath, texturedPhongFragmentShaderPath);
+            TexturedPhongEffect = TKEffect.Create(new TKProgram[] { TexturedPhongProgram });
 
-            var DeferredProgram = new TKProgram(deferredVertexShaderPath, deferredFragmentShaderPath);
-            DeferredEffect = new TKEffect(new TKProgram[] { DeferredProgram });
+            var DeferredProgram = TKProgram.Create(deferredVertexShaderPath, deferredFragmentShaderPath);
+            DeferredEffect = TKEffect.Create(new TKProgram[] { DeferredProgram });
+
+            var skyboxProgram = TKProgram.Create(skyboxVertexShaderPath, skyboxFragmentShaderPath);
+            SkyboxEffect = TKEffect.Create(new[] { skyboxProgram });
+
+            var screenProgram = TKProgram.Create(screenVertexShaderPath, screenFragmentShaderPath);
+            ScreenEffect = TKEffect.Create(new[] { screenProgram });
+
+            var greyPostProcessProgram = TKProgram.Create(screenVertexShaderPath, greyPostProcessFragmentShaderPath);
+            GreyPostProcessEffect = TKEffect.Create(new[] { greyPostProcessProgram });
+
+            var negativePostProcessProgram = TKProgram.Create(screenVertexShaderPath, negativePostProcessFragmentShaderPath);
+            NegativePostProcessEffect = TKEffect.Create(new[] { negativePostProcessProgram });
+
+            //var reliefPostProcessProgram = TKProgram.Create(screenVertexShaderPath, reliefPostProcessFragmentShaderPath);
+            //ReliefPostProcessEffect = TKEffect.Create(new[] { reliefPostProcessProgram });
+
+            var motionBlurPostProcessProgram = TKProgram.Create(screenVertexShaderPath, motionBlurPostProcessFragmentShader);
+            MotionBlurPostProcessEffect = TKEffect.Create(new[] { motionBlurPostProcessProgram });
         }
         void _AddFileWatcher()
         {

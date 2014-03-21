@@ -1,4 +1,5 @@
 ﻿using CStrawberry3D.Component;
+using System.Collections.Generic;
 using OpenTK;
 
 namespace CStrawberry3D.Core
@@ -8,6 +9,18 @@ namespace CStrawberry3D.Core
         public static Scene Create()
         {
             return new Scene();
+        }
+        public DirectionalLightComponent[] DirectionalLights
+        {
+            get
+            {
+                var list = new List<DirectionalLightComponent>();
+                foreach (var node in Root.GetAll())
+                {
+                    list.AddRange(node.GetComponents<DirectionalLightComponent>());
+                }
+                return list.ToArray();
+            }
         }
         public StrawberryNode Root { get; private set; }
         public StrawberryNode Camera { get; private set; }

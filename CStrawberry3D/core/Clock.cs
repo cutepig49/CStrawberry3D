@@ -12,13 +12,21 @@ namespace CStrawberry3D.Core
         {
             return new Clock();
         }
+        public int PeriodFps { get; set; }
+        public int Fps { get; private set; }
         public float Delta { get; private set; }
         public int Limit { get; private set; }
+        int _currFps;
+        float _currPeriod;
         Stopwatch _watch;
         Clock()
         {
             Delta = 0;
             Limit = 60;
+            _currFps = 0;
+            PeriodFps = 100;
+            Fps = 0;
+            _currPeriod = 0;
             _watch = new Stopwatch();
         }
         public void Start()
@@ -38,6 +46,12 @@ namespace CStrawberry3D.Core
                 {
                     break;
                 }
+            }
+            _currFps++;
+            _currPeriod += Delta;
+            if (_currFps > PeriodFps)
+            {
+                Fps = (int)(_currFps / _currPeriod);
             }
             _watch.Restart();
         }
