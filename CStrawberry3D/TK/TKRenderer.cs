@@ -10,6 +10,7 @@ using CStrawberry3D.Platform;
 using CStrawberry3D.Component;
 using CStrawberry3D.Interface;
 using CStrawberry3D.TK;
+using System.Windows.Forms;
 
 namespace CStrawberry3D.TK
 {
@@ -145,7 +146,6 @@ namespace CStrawberry3D.TK
         }
         void _UpdateFrame(object sender, EventArgs e)
         {
-
             Clock.Tick();
             Input.Update();
 

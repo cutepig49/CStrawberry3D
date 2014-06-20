@@ -40,7 +40,7 @@ namespace CStrawberry3D
         /// <summary>
         /// 应用程序的主入口点。
         /// </summary>
-        static bool isNegative = false;
+        static float distanceToGround = 500;
         static float rx = 0;
         static float ry = 0;
         public static TKRenderer renderer;
@@ -51,10 +51,9 @@ namespace CStrawberry3D
         static string file = "flower.3DS";
         static TerrainComponent terrain;
         static float pauseStart = 0;
+        static GameState state = GameState.Gaming;
+        static float speed = 1000;
 
-        static Vector3 coreLastPos;
-
-        static Flower test;
         static Random random = new Random();
         static Flower createFlower()
         {
@@ -70,26 +69,41 @@ namespace CStrawberry3D
             var texture = TKTexture.CreateFromFile("flower.jpg");
             flowerMesh.FirstEntry.Material = TKTexturedMaterial.Create(renderer.ShaderManager, texture);
         }
+        enum GameState
+        {
+            Gaming,
+            Eating
+        }
+        static void GenFlower()
+        {
+            var flower = createFlower();
+            flowers.Add(flower);
+            flower.X = random.Next(0, (int)terrain.TerrainWidth);
+            flower.Z = random.Next(0, (int)terrain.TerrainLength);
+            flower.Y = terrain.SampleHeight(flower.X, flower.Z) + distanceToGround + random.Next(0, 100);
+            flower.MoveForce = new Vector3();
+            renderer.Scene.Root.AddChild(flower);
+        }
         [STAThread]
         static void Main()
         {
-            renderer = TKRenderer.Create("CStrawberry3D", 1024, 768);
+            renderer = TKRenderer.Create("CStrawberry3D - 鼠标左键移动右键镜头，飞过去吃花瓣", 1024, 768);
             flowers = new List<Flower>();
 
-            terrain = TerrainComponent.Create(TKTexture.CreateFromFile("heightmap.jpg"), 100, 100, 100);
-            terrain._terrainMesh.FirstEntry.Material = TKTexturedMaterial.Create(renderer.ShaderManager, TKTexture.CreateFromFile("flower.jpg"));
+            terrain = TerrainComponent.Create(TKTexture.CreateFromFile("heightmap.jpg"), 100, 3, 100, 100, 100);
+            terrain._terrainMesh.FirstEntry.Material = TKTexturedMaterial.Create(renderer.ShaderManager, TKTexture.CreateFromFile("grass.jpg"));
 
             renderer.Scene.Root.CreateChild().AddComponent(terrain);
 
             loadFlower();
             renderer.Loader.LoadAsset(file);
             core = Flower.Create(flowerMesh);
-            core.Y = 10000;
+            core.X = terrain.TerrainWidth / 2;
+            core.Z = terrain.TerrainLength / 2;
             core.RotationForce = new Vector3(0.5f, 0.5f, 0.5f);
             core.rotation = new Vector3(0.1f, 0.1f, 0.1f);
             renderer.Scene.Root.AddChild(core);
 
-            coreLastPos = new Vector3();
 
             for (int i = 0; i < 5; i++)
             {
@@ -98,7 +112,12 @@ namespace CStrawberry3D
                 core.AddChild(flower);
             }
 
-            renderer.Loader.LoadAsset("default.skybox");
+            for (int i = 0; i < 10; i ++)
+            {
+                GenFlower();
+            }
+
+                renderer.Loader.LoadAsset("default.skybox");
             var skybox = renderer.Loader.GetSkyBox("default.skybox");
 
             renderer.Scene.Camera.CameraComponent.SetSkybox(skybox);
@@ -110,15 +129,16 @@ namespace CStrawberry3D
 
             //renderer.Scene.AmbientLight = new Vector4();
 
-            test = Flower.Create(flowerMesh);
             //renderer.Scene.Root.AddChild(test);
 
             renderer.UpdateFrame = Update;
             renderer.Sound.Open("bgm.mp3");
             renderer.Sound.Play(true);
 
-                //renderer.PostProcessManager.Push(TKMotionBlurPostProcess.Create(renderer.ShaderManager));
-            renderer.PostProcessManager.Push(TKNegativePostProcess.Create(renderer.ShaderManager));
+
+            //renderer.PostProcessManager.Push(TKMotionBlurPostProcess.Create(renderer.ShaderManager));
+            //renderer.PostProcessManager.Push(TKNegativePostProcess.Create(renderer.ShaderManager));
+
 
 
 
@@ -127,9 +147,19 @@ namespace CStrawberry3D
         static void LoadAsset()
         {
         }
-        static void Update(float dt)
+        static void EatingUpdate(float dt)
         {
-            //core.RotationForce += (new Vector3(Convert.ToSingle(random.NextDouble() - 0.5), Convert.ToSingle(random.NextDouble() - 0.5), Convert.ToSingle(random.NextDouble() - 0.5)))*0.1f;
+            pauseStart += dt;
+            if (pauseStart > 0.2)
+            {
+                state = GameState.Gaming;
+                pauseStart = 0;
+                renderer.PostProcessManager.Pop();
+                renderer.PostProcessManager.Push(TKMotionBlurPostProcess.Create(renderer.ShaderManager));
+            }
+        }
+        static void GamingUpdate(float dt)
+        {
             var originalRotationForce = core.RotationForce;
             if (renderer.Input.KeyDown(Key.Escape))
             {
@@ -153,51 +183,59 @@ namespace CStrawberry3D
             }
             if (renderer.Input.MouseLB)
             {
-                core.MoveForce += -renderer.Scene.Camera.Forward * dt * 100;
+                core.MoveForce += -renderer.Scene.Camera.Forward * dt * speed;
                 core.RotationForce *= 2;
-                foreach (var f in flowers)
-                {
-                    if (f.MoveForce.Length > 50)
-                    {
-                        continue;
-                    }
-                    //f.MoveForce -= -renderer.Scene.Camera.Forward * dt * 5;
-                }
             }
             if (renderer.Input.KeyDown(Key.Space))
             {
-                //if (isNegative)
-                //{
-                //    renderer.PostProcessManager.Pop();
-                //}
-                //else
-                //{
-                //    renderer.PostProcessManager.Push(TKNegativePostProcess.Create(renderer.ShaderManager));
-                //}
-                //isNegative = !isNegative;
-
-                var flower = createFlower();
-                flowers.Add(flower);
-                //core.AddChild(flower);
-
-                //renderer.GBuffer.PositionTexture.SaveToPng("debug\\position.png");
-                //renderer.GBuffer.DiffuseTexture.SaveToPng("debug\\diffuse.png");
-                //renderer.GBuffer.NormalTexture.SaveToPng("debug\\normal.png");
-                //renderer.GBuffer.DepthTexture.SaveToPng("debug\\depth.png");
+                //GenFlower();
+                //renderer.GBuffer.NormalTexture.SaveToPng("uDeferredNormal.png");
             }
+
             core.Update(dt);
-            foreach (var f in flowers)
+            var tmpFlowers = flowers.ToArray();
+            foreach (var f in tmpFlowers)
             {
                 f.Update(dt);
+                if ((f.translation - core.translation).Length < 100)
+                {
+                    state = GameState.Eating;
+                    renderer.PostProcessManager.Pop();
+                    renderer.PostProcessManager.Push(TKNegativePostProcess.Create(renderer.ShaderManager));
+                    renderer.Scene.Root.RemoveChild(f);
+                    core.AddChild(f);
+                    f.translation = new Vector3();
+                    f.MoveForce = new Vector3(random.Next(-100, 100), random.Next(-100, 100), random.Next(-100, 100));
+                    GenFlower();
+                }
             }
 
             renderer.Scene.Camera.translation = core.translation - -renderer.Scene.Camera.Forward * 1000;
 
-            coreLastPos = core.translation;
-
             core.RotationForce = originalRotationForce;
 
-            Console.WriteLine(renderer.Scene.Camera.Forward);
+            core.X = core.X < 0 ? 0 : core.X;
+            core.X = core.X > terrain.TerrainWidth ? terrain.TerrainWidth : core.X;
+            core.Z = core.Z < 0 ? 0 : core.Z;
+            core.Z = core.Z > terrain.TerrainLength ? terrain.TerrainLength : core.Z;
+
+            if ((core.Y - terrain.SampleHeight(core.X,core.Z))<distanceToGround)
+            {
+                core.Y = terrain.SampleHeight(core.X, core.Z) + distanceToGround;
+            }
+
+        }
+        static void Update(float dt)
+        {
+            switch(state)
+            {
+                case GameState.Gaming:
+                    GamingUpdate(dt);
+                    break;
+                case GameState.Eating:
+                    EatingUpdate(dt);
+                    break;
+            }
         }
     }
 }

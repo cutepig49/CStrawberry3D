@@ -19,7 +19,7 @@ namespace CStrawberry3D.TK
     {
         public static TKMeshEntry Create(Vector3[] vertices, uint[] indices, Vector4[] vertexColors, Vector3[] textureCoords, Vector3[] normals, TKMaterial material, TKMeshDescription desc)
         {
-            return new TKMeshEntry(vertices, indices, vertexColors, textureCoords, normals, material, desc);
+            return new TKMeshEntry(vertices, indices, vertexColors, normals, textureCoords, material, desc);
         }
         public static TKMeshEntry Create(Vector3D[] vertices, uint[] indices, Color4D[] vertexColors, Vector3D[] textureCoords, Vector3D[] normals, TKMaterial material, TKMeshDescription desc)
         {

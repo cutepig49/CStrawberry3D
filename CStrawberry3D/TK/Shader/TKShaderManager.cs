@@ -52,8 +52,8 @@ namespace CStrawberry3D.TK
 
     public class TKShaderManager
     {
-        public const string shaderDir = @"../../Shaders/";
-        //public const string shaderDir = @"Shaders/";
+        //public const string shaderDir = @"../../Shaders/";
+        public const string shaderDir = @"Shaders/";
         public const string globalColorVertexShaderPath = shaderDir + "GlobalColorVertexShader.glsl";
         public const string globalColorFragmentShaderPath = shaderDir + "GlobalColorFragmentShader.glsl";
         public const string basicColorVertexShaderPath = shaderDir + "BasicColorVertexShader.glsl";
